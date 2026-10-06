@@ -1,0 +1,47 @@
+# ============================================================================
+# Soluquim — Code Review automatico de PRs (Gemini)
+# ----------------------------------------------------------------------------
+# Este archivo es IDENTICO para los 6 repos (backend y frontend): el tipo de
+# servicio se deriva del slug del repo dentro de review.py.
+#
+# Los estandares (tools/_docs) y el motor (tools/ci-reviewer/review.py) viven
+# SOLO en soluquim-docker; aqui se clonan en runtime -> cero duplicacion.
+#
+# Variables de workspace requeridas (Repository/Workspace settings > Variables):
+#   BB_WORKSPACE      sistemas_mys
+#   BB_EMAIL          email del usuario con permiso para comentar PRs
+#   BB_TOKEN          API token de Atlassian (secured) — leer diff + comentar
+#   GEMINI_API_KEY    API key de Google Gemini (secured)
+#   CI_DOCKER_TOKEN   token para clonar soluquim-docker (secured)
+#                     -> Repository/Workspace Access Token con scope repository:read
+# Opcionales: GEMINI_MODEL, TARGET_BRANCHES, FAIL_ON_CRITICAL, MAX_DIFF_CHARS
+# ============================================================================
+
+image: python:3.12-slim
+
+definitions:
+  caches:
+    pip: ~/.cache/pip
+
+pipelines:
+  pull-requests:
+    '**':
+      - step:
+          name: "Soluquim Code Review (Gemini)"
+          size: 2x
+          max-time: 10
+          caches:
+            - pip
+          script:
+            # Solo se revisa cuando el PR va dirigido a qa. Bitbucket no filtra por
+            # rama destino de forma nativa, asi que se corta aqui antes de clonar/instalar.
+            - |
+              if [ "$BITBUCKET_PR_DESTINATION_BRANCH" != "qa" ]; then
+                echo "PR destino '$BITBUCKET_PR_DESTINATION_BRANCH' != qa. Se omite la revision."
+                exit 0
+              fi
+            - apt-get update && apt-get install -y --no-install-recommends git
+            # Traer estandares centralizados + motor de review desde el repo central
+            - git clone --depth 1 "https://x-token-auth:${CI_DOCKER_TOKEN}@bitbucket.org/${BB_WORKSPACE}/soluquim-docker.git" /tmp/soluquim-docker
+            - pip install --no-cache-dir -r /tmp/soluquim-docker/tools/ci-reviewer/requirements.txt
+            - python /tmp/soluquim-docker/tools/ci-reviewer/review.py --repo "$BITBUCKET_REPO_SLUG" --pr_id "$BITBUCKET_PR_ID" --commit "$BITBUCKET_COMMIT"

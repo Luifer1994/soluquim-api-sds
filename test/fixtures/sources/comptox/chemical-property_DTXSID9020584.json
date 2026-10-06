@@ -1,0 +1,1300 @@
+{
+  "createdDate" : null,
+  "lastModifiedDate" : null,
+  "createdBy" : null,
+  "dtxsid" : "DTXSID9020584",
+  "dtxcid" : "DTXCID30584",
+  "data" : [ {
+    "unit" : "Å^3",
+    "name" : "Polarizability",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 5.094,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_Prop_Polarizability",
+        "modelId" : 122,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 1,
+      "mean" : 5.094,
+      "min" : 5.094,
+      "max" : 5.094,
+      "range" : [ 5.094, 5.094 ],
+      "median" : 5.094
+    },
+    "experimental" : null
+  }, {
+    "unit" : "atm-m3/mole",
+    "name" : "Henry's Law",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 5.011872336272725E-6,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "OPERA 2.6",
+        "description" : "OPERA is a free and open source/open data suite of QSAR Models providing predictions and additional information including applicability domain and accuracy assessment, as described in the publication <a href='http://dx.doi.org/10.1186/s13321-018-0263-1'target='_blank'>OPERA models for predicting physicochemical properties and environmental fate endpoints</a>. All models were built on curated data and standardized chemical structures as described in the publication <a href='http://dx.doi.org/10.1080/1062936X.2016.1253611'target='_blank'>An automated curation procedure for addressing chemical errors and inconsistencies in public datasets used in QSAR modelling</a>. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius.",
+        "modelName" : "OPERA_HL",
+        "modelId" : 19,
+        "hasOpera" : true,
+        "globalApplicability" : 1,
+        "hasQmrfPdf" : true,
+        "details" : {
+          "value" : "Available",
+          "link" : "http://comptox-dev.epa.gov/dashboard/dsstoxdb/calculation_details?model_id=19&search=20584",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : "Available",
+          "link" : "https://comptox.epa.gov/dashboard-api/ccdapp1/qmrfdata/file/by-modelid/19",
+          "showLink" : true
+        }
+      } ],
+      "count" : 1,
+      "mean" : 5.011872336272725E-6,
+      "min" : 5.011872336272725E-6,
+      "max" : 5.011872336272725E-6,
+      "range" : [ 5.011872336272725E-6, 5.011872336272725E-6 ],
+      "median" : 5.011872336272725E-6
+    },
+    "experimental" : {
+      "rawData" : [ {
+        "value" : 5.0E-6,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "PhysPropNCCT",
+        "description" : "The PHYSPROP data sets are the publicly available data files underpinning the EPISuiteTM prediction models.  The data were curated by NCCT using a combination of manual and automated processing routines with only the highest quality data reported.",
+        "experimentalDetails" : [ ]
+      } ],
+      "count" : 1,
+      "mean" : 5.0E-6,
+      "min" : 5.0E-6,
+      "max" : 5.0E-6,
+      "range" : [ 5.0E-6, 5.0E-6 ],
+      "median" : 5.0E-6
+    }
+  }, {
+    "unit" : "°C",
+    "name" : "Boiling Point",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 65.11,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "EPISUITE",
+        "description" : "<a href='https://www.epa.gov/tsca-screening-tools/epi-suitetm-estimation-program-interface' target='_blank'>EPISUITE Estimation Programs Interface Suite™</a> is a Windows®-based suite of physical/chemical property and environmental fate estimation programs developed by EPA’s and Syracuse Research Corp.",
+        "modelName" : "EPISUITE_BP",
+        "modelId" : 34,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 68.054,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "TEST",
+        "description" : "The <a href='https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test' target='_blank'>Toxicity Estimation Software Tool (TEST)</a> is an EPA software application developed to allow users to easily estimate the toxicity of chemicals using Quantitative Structure Activity Relationships (QSARs) methodologies.",
+        "modelName" : "TEST_BP",
+        "modelId" : 10,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "https://dmap-data-commons-ord.s3.amazonaws.com/ccte/epa-comptox/test-reports/DTXCID30584-TEST_BP.html",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 72.62,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_BP",
+        "modelId" : 135,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 78.0,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "OPERA 2.6",
+        "description" : "OPERA is a free and open source/open data suite of QSAR Models providing predictions and additional information including applicability domain and accuracy assessment, as described in the publication <a href='http://dx.doi.org/10.1186/s13321-018-0263-1'target='_blank'>OPERA models for predicting physicochemical properties and environmental fate endpoints</a>. All models were built on curated data and standardized chemical structures as described in the publication <a href='http://dx.doi.org/10.1080/1062936X.2016.1253611'target='_blank'>An automated curation procedure for addressing chemical errors and inconsistencies in public datasets used in QSAR modelling</a>. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius.",
+        "modelName" : "OPERA_BP",
+        "modelId" : 27,
+        "hasOpera" : true,
+        "globalApplicability" : 1,
+        "hasQmrfPdf" : true,
+        "details" : {
+          "value" : "Available",
+          "link" : "http://comptox-dev.epa.gov/dashboard/dsstoxdb/calculation_details?model_id=27&search=20584",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : "Available",
+          "link" : "https://comptox.epa.gov/dashboard-api/ccdapp1/qmrfdata/file/by-modelid/27",
+          "showLink" : true
+        }
+      } ],
+      "count" : 4,
+      "mean" : 70.946,
+      "min" : 65.11,
+      "max" : 78.0,
+      "range" : [ 65.11, 78.0 ],
+      "median" : 70.337
+    },
+    "experimental" : {
+      "rawData" : [ {
+        "value" : 78.0,
+        "minValue" : 78.0,
+        "maxValue" : 78.0,
+        "source" : "Alfa Aesar (Chemical company)",
+        "description" : "Alfa Aesar is a leading international manufacturer, supplier and distributor of fine chemicals, metals, and materials. Company website: <a href=\"https://www.alfa.com/\" target=\"_blank\">https://www.alfa.com/</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : 78.0,
+        "minValue" : 78.0,
+        "maxValue" : 78.0,
+        "source" : "Alfa Aesar (Chemical company)",
+        "description" : "Alfa Aesar is a leading international manufacturer, supplier and distributor of fine chemicals, metals, and materials. Company website: <a href=\"https://www.alfa.com/\" target=\"_blank\">https://www.alfa.com/</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : 78.0,
+        "minValue" : 78.0,
+        "maxValue" : 78.0,
+        "source" : "Food and Agriculture Organization of the United Nations",
+        "description" : "The Joint FAO/WHO Expert Committee on Food Additives (JECFA) is an international expert scientific committee that is administered jointly by the Food and Agriculture Organization of the United Nations (FAO) and the World Health Organization (WHO). Website: <a href=\"http://www.fao.org/home/\" target=\"_blank\">http://www.fao.org/home/</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : 78.0,
+        "minValue" : 78.0,
+        "maxValue" : 78.0,
+        "source" : "Oxford University Chemical Safety Data (No longer updated)",
+        "description" : "Until 2011, The Physical and Theoretical Chemistry Laboratory at Oxford University provided access to a set of safety information and physical properties for a small set of common laboratory chemicals. The data are only available as a historical collection.",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : 78.2,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "PhysPropNCCT",
+        "description" : "The PHYSPROP data sets are the publicly available data files underpinning the EPISuiteTM prediction models.  The data were curated by NCCT using a combination of manual and automated processing routines with only the highest quality data reported.",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : 78.3333,
+        "minValue" : 78.3333,
+        "maxValue" : 78.3333,
+        "source" : "NIOSH",
+        "description" : "The NIOSH Pocket Guide to Chemical Hazards (NPG) is intended as a source of general industrial hygiene information on several hundred chemicals/classes for workers, employers, and occupational health professionals. Website: <a href=\"http://www.cdc.gov/niosh/\" target=\"_blank\">http://www.cdc.gov/niosh/</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : 80.0,
+        "minValue" : 80.0,
+        "maxValue" : 80.0,
+        "source" : "Alfa Aesar (Chemical company)",
+        "description" : "Alfa Aesar is a leading international manufacturer, supplier and distributor of fine chemicals, metals, and materials. Company website: <a href=\"https://www.alfa.com/\" target=\"_blank\">https://www.alfa.com/</a>",
+        "experimentalDetails" : [ ]
+      } ],
+      "count" : 7,
+      "mean" : 78.3619,
+      "min" : 78.0,
+      "max" : 80.0,
+      "range" : [ 78.0, 80.0 ],
+      "median" : 78.0
+    }
+  }, {
+    "unit" : "°C",
+    "name" : "Flash Point",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 8.889,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_FP",
+        "modelId" : 134,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 10.828,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "TEST",
+        "description" : "The <a href='https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test' target='_blank'>Toxicity Estimation Software Tool (TEST)</a> is an EPA software application developed to allow users to easily estimate the toxicity of chemicals using Quantitative Structure Activity Relationships (QSARs) methodologies.",
+        "modelName" : "TEST_FP",
+        "modelId" : 7,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "https://dmap-data-commons-ord.s3.amazonaws.com/ccte/epa-comptox/test-reports/DTXCID30584-TEST_FP.html",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 2,
+      "mean" : 9.8585,
+      "min" : 8.889,
+      "max" : 10.828,
+      "range" : [ 8.889, 10.828 ],
+      "median" : 9.8585
+    },
+    "experimental" : null
+  }, {
+    "unit" : "°C",
+    "name" : "Melting Point",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : -114.0,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "OPERA 2.6",
+        "description" : "OPERA is a free and open source/open data suite of QSAR Models providing predictions and additional information including applicability domain and accuracy assessment, as described in the publication <a href='http://dx.doi.org/10.1186/s13321-018-0263-1'target='_blank'>OPERA models for predicting physicochemical properties and environmental fate endpoints</a>. All models were built on curated data and standardized chemical structures as described in the publication <a href='http://dx.doi.org/10.1080/1062936X.2016.1253611'target='_blank'>An automated curation procedure for addressing chemical errors and inconsistencies in public datasets used in QSAR modelling</a>. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius.",
+        "modelName" : "OPERA_MP",
+        "modelId" : 18,
+        "hasOpera" : true,
+        "globalApplicability" : 1,
+        "hasQmrfPdf" : true,
+        "details" : {
+          "value" : "Available",
+          "link" : "http://comptox-dev.epa.gov/dashboard/dsstoxdb/calculation_details?model_id=18&search=20584",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : "Available",
+          "link" : "https://comptox.epa.gov/dashboard-api/ccdapp1/qmrfdata/file/by-modelid/18",
+          "showLink" : true
+        }
+      }, {
+        "value" : -87.84,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "EPISUITE",
+        "description" : "<a href='https://www.epa.gov/tsca-screening-tools/epi-suitetm-estimation-program-interface' target='_blank'>EPISUITE Estimation Programs Interface Suite™</a> is a Windows®-based suite of physical/chemical property and environmental fate estimation programs developed by EPA’s and Syracuse Research Corp.",
+        "modelName" : "EPISUITE_MP",
+        "modelId" : 33,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : -69.464,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "TEST",
+        "description" : "The <a href='https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test' target='_blank'>Toxicity Estimation Software Tool (TEST)</a> is an EPA software application developed to allow users to easily estimate the toxicity of chemicals using Quantitative Structure Activity Relationships (QSARs) methodologies.",
+        "modelName" : "TEST_MP",
+        "modelId" : 8,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "https://dmap-data-commons-ord.s3.amazonaws.com/ccte/epa-comptox/test-reports/DTXCID30584-TEST_MP.html",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 3,
+      "mean" : -90.43466666666666,
+      "min" : -114.0,
+      "max" : -69.464,
+      "range" : [ -114.0, -69.464 ],
+      "median" : -87.84
+    },
+    "experimental" : {
+      "rawData" : [ {
+        "value" : -144.0,
+        "minValue" : -144.0,
+        "maxValue" : -144.0,
+        "source" : "Oxford University Chemical Safety Data (No longer updated)",
+        "description" : "Until 2011, The Physical and Theoretical Chemistry Laboratory at Oxford University provided access to a set of safety information and physical properties for a small set of common laboratory chemicals. The data are only available as a historical collection.",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -130.0,
+        "minValue" : -130.0,
+        "maxValue" : -130.0,
+        "source" : "Alfa Aesar (Chemical company)",
+        "description" : "Alfa Aesar is a leading international manufacturer, supplier and distributor of fine chemicals, metals, and materials. Company website: <a href=\"https://www.alfa.com/\" target=\"_blank\">https://www.alfa.com/</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -130.0,
+        "minValue" : -130.0,
+        "maxValue" : -130.0,
+        "source" : "Alfa Aesar (Chemical company)",
+        "description" : "Alfa Aesar is a leading international manufacturer, supplier and distributor of fine chemicals, metals, and materials. Company website: <a href=\"https://www.alfa.com/\" target=\"_blank\">https://www.alfa.com/</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -114.4,
+        "minValue" : -114.4,
+        "maxValue" : -114.4,
+        "source" : "Jean-Claude Bradley Open Melting Point Dataset",
+        "description" : "Jean-Claude Bradley's Legacy Dataset of Open Melting Points. Website: <a href='http://dx.doi.org/10.6084/m9.figshare.1031637' target='_blank'>http://dx.doi.org/10.6084/m9.figshare.1031637</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -114.3,
+        "minValue" : -114.3,
+        "maxValue" : -114.3,
+        "source" : "Jean-Claude Bradley Open Melting Point Dataset",
+        "description" : "Jean-Claude Bradley's Legacy Dataset of Open Melting Points. Website: <a href='http://dx.doi.org/10.6084/m9.figshare.1031637' target='_blank'>http://dx.doi.org/10.6084/m9.figshare.1031637</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -114.14,
+        "minValue" : -114.14,
+        "maxValue" : -114.14,
+        "source" : "Jean-Claude Bradley Open Melting Point Dataset",
+        "description" : "Jean-Claude Bradley's Legacy Dataset of Open Melting Points. Website: <a href='http://dx.doi.org/10.6084/m9.figshare.1031637' target='_blank'>http://dx.doi.org/10.6084/m9.figshare.1031637</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -114.1,
+        "minValue" : -114.1,
+        "maxValue" : -114.1,
+        "source" : "Jean-Claude Bradley Open Melting Point Dataset",
+        "description" : "Jean-Claude Bradley's Legacy Dataset of Open Melting Points. Website: <a href='http://dx.doi.org/10.6084/m9.figshare.1031637' target='_blank'>http://dx.doi.org/10.6084/m9.figshare.1031637</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -114.1,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "PhysPropNCCT",
+        "description" : "The PHYSPROP data sets are the publicly available data files underpinning the EPISuiteTM prediction models.  The data were curated by NCCT using a combination of manual and automated processing routines with only the highest quality data reported.",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -114.0,
+        "minValue" : -114.0,
+        "maxValue" : -114.0,
+        "source" : "Jean-Claude Bradley Open Melting Point Dataset",
+        "description" : "Jean-Claude Bradley's Legacy Dataset of Open Melting Points. Website: <a href='http://dx.doi.org/10.6084/m9.figshare.1031637' target='_blank'>http://dx.doi.org/10.6084/m9.figshare.1031637</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -113.889,
+        "minValue" : -113.889,
+        "maxValue" : -113.889,
+        "source" : "NIOSH",
+        "description" : "The NIOSH Pocket Guide to Chemical Hazards (NPG) is intended as a source of general industrial hygiene information on several hundred chemicals/classes for workers, employers, and occupational health professionals. Website: <a href=\"http://www.cdc.gov/niosh/\" target=\"_blank\">http://www.cdc.gov/niosh/</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -100.0,
+        "minValue" : -100.0,
+        "maxValue" : -100.0,
+        "source" : "Alfa Aesar (Chemical company)",
+        "description" : "Alfa Aesar is a leading international manufacturer, supplier and distributor of fine chemicals, metals, and materials. Company website: <a href=\"https://www.alfa.com/\" target=\"_blank\">https://www.alfa.com/</a>",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -90.0,
+        "minValue" : -90.0,
+        "maxValue" : -90.0,
+        "source" : "Alfa Aesar (Chemical company)",
+        "description" : "Alfa Aesar is a leading international manufacturer, supplier and distributor of fine chemicals, metals, and materials. Company website: <a href=\"https://www.alfa.com/\" target=\"_blank\">https://www.alfa.com/</a>",
+        "experimentalDetails" : [ ]
+      } ],
+      "count" : 12,
+      "mean" : -116.07741666666665,
+      "min" : -144.0,
+      "max" : -90.0,
+      "range" : [ -144.0, -90.0 ],
+      "median" : -114.12
+    }
+  }, {
+    "unit" : "cm^3/mol",
+    "name" : "Molar Refractivity",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 12.85,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_Prop_Molar_Refractivity",
+        "modelId" : 121,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 1,
+      "mean" : 12.85,
+      "min" : 12.85,
+      "max" : 12.85,
+      "range" : [ 12.85, 12.85 ],
+      "median" : 12.85
+    },
+    "experimental" : null
+  }, {
+    "unit" : "cm^3/mol",
+    "name" : "Molar Volume",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 59.055,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_Prop_Molar_Volume",
+        "modelId" : 120,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 1,
+      "mean" : 59.055,
+      "min" : 59.055,
+      "max" : 59.055,
+      "range" : [ 59.055, 59.055 ],
+      "median" : 59.055
+    },
+    "experimental" : null
+  }, {
+    "unit" : "cP",
+    "name" : "Viscosity",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 1.53109,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "TEST",
+        "description" : "The <a href='https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test' target='_blank'>Toxicity Estimation Software Tool (TEST)</a> is an EPA software application developed to allow users to easily estimate the toxicity of chemicals using Quantitative Structure Activity Relationships (QSARs) methodologies.",
+        "modelName" : "TEST_Viscosity",
+        "modelId" : 16,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "https://dmap-data-commons-ord.s3.amazonaws.com/ccte/epa-comptox/test-reports/DTXCID30584-TEST_Viscosity.html",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 1,
+      "mean" : 1.53109,
+      "min" : 1.53109,
+      "max" : 1.53109,
+      "range" : [ 1.53109, 1.53109 ],
+      "median" : 1.53109
+    },
+    "experimental" : null
+  }, {
+    "unit" : "dyn/cm",
+    "name" : "Surface Tension",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 22.386,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_Prop_Surface_Tension",
+        "modelId" : 123,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 24.095,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "TEST",
+        "description" : "The <a href='https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test' target='_blank'>Toxicity Estimation Software Tool (TEST)</a> is an EPA software application developed to allow users to easily estimate the toxicity of chemicals using Quantitative Structure Activity Relationships (QSARs) methodologies.",
+        "modelName" : "TEST_Surface_Tension",
+        "modelId" : 12,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "https://dmap-data-commons-ord.s3.amazonaws.com/ccte/epa-comptox/test-reports/DTXCID30584-TEST_Surface_Tension.html",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 2,
+      "mean" : 23.240499999999997,
+      "min" : 22.386,
+      "max" : 24.095,
+      "range" : [ 22.386, 24.095 ],
+      "median" : 23.240499999999997
+    },
+    "experimental" : null
+  }, {
+    "unit" : "g/cm^3",
+    "name" : "Density",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 0.78,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_Prop_Density",
+        "modelId" : 118,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 0.912,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "TEST",
+        "description" : "The <a href='https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test' target='_blank'>Toxicity Estimation Software Tool (TEST)</a> is an EPA software application developed to allow users to easily estimate the toxicity of chemicals using Quantitative Structure Activity Relationships (QSARs) methodologies.",
+        "modelName" : "TEST_Density",
+        "modelId" : 4,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "https://dmap-data-commons-ord.s3.amazonaws.com/ccte/epa-comptox/test-reports/DTXCID30584-TEST_Density.html",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 2,
+      "mean" : 0.8460000000000001,
+      "min" : 0.78,
+      "max" : 0.912,
+      "range" : [ 0.78, 0.912 ],
+      "median" : 0.8460000000000001
+    },
+    "experimental" : null
+  }, {
+    "unit" : "Log10 unitless",
+    "name" : "LogD5.5",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : -0.31,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "OPERA 2.6",
+        "description" : "OPERA is a free and open source/open data suite of QSAR Models providing predictions and additional information including applicability domain and accuracy assessment, as described in the publication <a href='http://dx.doi.org/10.1186/s13321-018-0263-1'target='_blank'>OPERA models for predicting physicochemical properties and environmental fate endpoints</a>. All models were built on curated data and standardized chemical structures as described in the publication <a href='http://dx.doi.org/10.1080/1062936X.2016.1253611'target='_blank'>An automated curation procedure for addressing chemical errors and inconsistencies in public datasets used in QSAR modelling</a>. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius.",
+        "modelName" : "OPERA_LogD_ph5.5",
+        "modelId" : 210,
+        "hasOpera" : true,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "http://comptox-dev.epa.gov/dashboard/dsstoxdb/calculation_details?model_id=210&search=20584",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : -0.227,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>.",
+        "modelName" : "ACD_LogD_5_5",
+        "modelId" : 1224,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 2,
+      "mean" : -0.2685,
+      "min" : -0.31,
+      "max" : -0.227,
+      "range" : [ -0.31, -0.227 ],
+      "median" : -0.2685
+    },
+    "experimental" : null
+  }, {
+    "unit" : "Log10 unitless",
+    "name" : "LogD7.4",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : -0.31,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "OPERA 2.6",
+        "description" : "OPERA is a free and open source/open data suite of QSAR Models providing predictions and additional information including applicability domain and accuracy assessment, as described in the publication <a href='http://dx.doi.org/10.1186/s13321-018-0263-1'target='_blank'>OPERA models for predicting physicochemical properties and environmental fate endpoints</a>. All models were built on curated data and standardized chemical structures as described in the publication <a href='http://dx.doi.org/10.1080/1062936X.2016.1253611'target='_blank'>An automated curation procedure for addressing chemical errors and inconsistencies in public datasets used in QSAR modelling</a>. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius.",
+        "modelName" : "OPERA_LogD_ph7.4",
+        "modelId" : 211,
+        "hasOpera" : true,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "http://comptox-dev.epa.gov/dashboard/dsstoxdb/calculation_details?model_id=211&search=20584",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : -0.227,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>.",
+        "modelName" : "ACD_LogD_7_4",
+        "modelId" : 1223,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 2,
+      "mean" : -0.2685,
+      "min" : -0.31,
+      "max" : -0.227,
+      "range" : [ -0.31, -0.227 ],
+      "median" : -0.2685
+    },
+    "experimental" : null
+  }, {
+    "unit" : "mmHg",
+    "name" : "Vapor Pressure",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 31.55,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "TEST",
+        "description" : "The <a href='https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test' target='_blank'>Toxicity Estimation Software Tool (TEST)</a> is an EPA software application developed to allow users to easily estimate the toxicity of chemicals using Quantitative Structure Activity Relationships (QSARs) methodologies.",
+        "modelName" : "TEST_VP",
+        "modelId" : 15,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "https://dmap-data-commons-ord.s3.amazonaws.com/ccte/epa-comptox/test-reports/DTXCID30584-TEST_VP.html",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 58.8843655355589,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "OPERA 2.6",
+        "description" : "OPERA is a free and open source/open data suite of QSAR Models providing predictions and additional information including applicability domain and accuracy assessment, as described in the publication <a href='http://dx.doi.org/10.1186/s13321-018-0263-1'target='_blank'>OPERA models for predicting physicochemical properties and environmental fate endpoints</a>. All models were built on curated data and standardized chemical structures as described in the publication <a href='http://dx.doi.org/10.1080/1062936X.2016.1253611'target='_blank'>An automated curation procedure for addressing chemical errors and inconsistencies in public datasets used in QSAR modelling</a>. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius.",
+        "modelName" : "OPERA_VP",
+        "modelId" : 30,
+        "hasOpera" : true,
+        "globalApplicability" : 1,
+        "hasQmrfPdf" : true,
+        "details" : {
+          "value" : "Available",
+          "link" : "http://comptox-dev.epa.gov/dashboard/dsstoxdb/calculation_details?model_id=30&search=20584",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : "Available",
+          "link" : "https://comptox.epa.gov/dashboard-api/ccdapp1/qmrfdata/file/by-modelid/30",
+          "showLink" : true
+        }
+      }, {
+        "value" : 82.819,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_VP",
+        "modelId" : 124,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 3,
+      "mean" : 57.751121845186304,
+      "min" : 31.55,
+      "max" : 82.819,
+      "range" : [ 31.55, 82.819 ],
+      "median" : 58.8843655355589
+    },
+    "experimental" : {
+      "rawData" : [ {
+        "value" : 59.2652,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "PhysPropNCCT",
+        "description" : "The PHYSPROP data sets are the publicly available data files underpinning the EPISuiteTM prediction models.  The data were curated by NCCT using a combination of manual and automated processing routines with only the highest quality data reported.",
+        "experimentalDetails" : [ ]
+      } ],
+      "count" : 1,
+      "mean" : 59.2652,
+      "min" : 59.2652,
+      "max" : 59.2652,
+      "range" : [ 59.2652, 59.2652 ],
+      "median" : 59.2652
+    }
+  }, {
+    "unit" : "mol/L",
+    "name" : "Water Solubility",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 3.99,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_Sol",
+        "modelId" : 126,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 6.51628,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "TEST",
+        "description" : "The <a href='https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test' target='_blank'>Toxicity Estimation Software Tool (TEST)</a> is an EPA software application developed to allow users to easily estimate the toxicity of chemicals using Quantitative Structure Activity Relationships (QSARs) methodologies.",
+        "modelName" : "TEST_Water_Solubility",
+        "modelId" : 1,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "https://dmap-data-commons-ord.s3.amazonaws.com/ccte/epa-comptox/test-reports/DTXCID30584-TEST_Water_Solubility.html",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 17.1938,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "EPISUITE",
+        "description" : "<a href='https://www.epa.gov/tsca-screening-tools/epi-suitetm-estimation-program-interface' target='_blank'>EPISUITE Estimation Programs Interface Suite™</a> is a Windows®-based suite of physical/chemical property and environmental fate estimation programs developed by EPA’s and Syracuse Research Corp.",
+        "modelName" : "EPISUITE_WS",
+        "modelId" : 31,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 18.197008586099834,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "OPERA 2.6",
+        "description" : "OPERA is a free and open source/open data suite of QSAR Models providing predictions and additional information including applicability domain and accuracy assessment, as described in the publication <a href='http://dx.doi.org/10.1186/s13321-018-0263-1'target='_blank'>OPERA models for predicting physicochemical properties and environmental fate endpoints</a>. All models were built on curated data and standardized chemical structures as described in the publication <a href='http://dx.doi.org/10.1080/1062936X.2016.1253611'target='_blank'>An automated curation procedure for addressing chemical errors and inconsistencies in public datasets used in QSAR modelling</a>. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius.",
+        "modelName" : "OPERA_WS",
+        "modelId" : 24,
+        "hasOpera" : true,
+        "globalApplicability" : 1,
+        "hasQmrfPdf" : true,
+        "details" : {
+          "value" : "Available",
+          "link" : "http://comptox-dev.epa.gov/dashboard/dsstoxdb/calculation_details?model_id=24&search=20584",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : "Available",
+          "link" : "https://comptox.epa.gov/dashboard-api/ccdapp1/qmrfdata/file/by-modelid/24",
+          "showLink" : true
+        }
+      } ],
+      "count" : 4,
+      "mean" : 11.474272146524958,
+      "min" : 3.99,
+      "max" : 18.197008586099834,
+      "range" : [ 3.99, 18.197008586099834 ],
+      "median" : 11.855039999999999
+    },
+    "experimental" : {
+      "rawData" : [ {
+        "value" : 12.5893,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Yalkowsky et al. Chemosphere 2002, 48, 487–509",
+        "description" : "Ran, Y.; He, Y.; Yang, G.; Johnson, J. L. H.; Yalkowsky, S. H. Estimation of aqueous solubility of organic compounds by using the general solubility equation.  (<a href=\"http://dx.doi.org/10.15152/QDB.188\" target=\"_blank\">Chemosphere 2002, 48, 487–509</a>)\r\n",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : 21.707,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "PhysPropNCCT",
+        "description" : "The PHYSPROP data sets are the publicly available data files underpinning the EPISuiteTM prediction models.  The data were curated by NCCT using a combination of manual and automated processing routines with only the highest quality data reported.",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : 21.9,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Kovdienko, et. al. Molecular informatics 29.5 (2010): 394-406.",
+        "description" : "Kovdienko, Nikolay A., et al. \"Application of random forest and multiple linear regression techniques to QSPR prediction of an aqueous solubility for military compounds.\" <a href='https://onlinelibrary.wiley.com/doi/full/10.1002/minf.201000001'target='_blank'>Molecular informatics 29.5 (2010): 394-406. </a>",
+        "experimentalDetails" : [ ]
+      } ],
+      "count" : 3,
+      "mean" : 18.7321,
+      "min" : 12.5893,
+      "max" : 21.9,
+      "range" : [ 12.5893, 21.9 ],
+      "median" : 21.707
+    }
+  }, {
+    "unit" : "mW/(m*K)",
+    "name" : "Thermal Conductivity",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 182.077,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "TEST",
+        "description" : "The <a href='https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test' target='_blank'>Toxicity Estimation Software Tool (TEST)</a> is an EPA software application developed to allow users to easily estimate the toxicity of chemicals using Quantitative Structure Activity Relationships (QSARs) methodologies.",
+        "modelName" : "TEST_Thermal_Conductivity",
+        "modelId" : 14,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "https://dmap-data-commons-ord.s3.amazonaws.com/ccte/epa-comptox/test-reports/DTXCID30584-TEST_Thermal_Conductivity.html",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 1,
+      "mean" : 182.077,
+      "min" : 182.077,
+      "max" : 182.077,
+      "range" : [ 182.077, 182.077 ],
+      "median" : 182.077
+    },
+    "experimental" : null
+  }, {
+    "unit" : "Dimensionless",
+    "name" : "Index of Refraction",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 1.354,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_Prop_Index_Of_Refraction",
+        "modelId" : 119,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 1,
+      "mean" : 1.354,
+      "min" : 1.354,
+      "max" : 1.354,
+      "range" : [ 1.354, 1.354 ],
+      "median" : 1.354
+    },
+    "experimental" : null
+  }, {
+    "unit" : "Log10 unitless",
+    "name" : "LogKoa: Octanol-Air",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 3.24,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "OPERA 2.6",
+        "description" : "OPERA is a free and open source/open data suite of QSAR Models providing predictions and additional information including applicability domain and accuracy assessment, as described in the publication <a href='http://dx.doi.org/10.1186/s13321-018-0263-1'target='_blank'>OPERA models for predicting physicochemical properties and environmental fate endpoints</a>. All models were built on curated data and standardized chemical structures as described in the publication <a href='http://dx.doi.org/10.1080/1062936X.2016.1253611'target='_blank'>An automated curation procedure for addressing chemical errors and inconsistencies in public datasets used in QSAR modelling</a>. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius.",
+        "modelName" : "OPERA_LogKOA",
+        "modelId" : 26,
+        "hasOpera" : true,
+        "globalApplicability" : 1,
+        "hasQmrfPdf" : true,
+        "details" : {
+          "value" : "Available",
+          "link" : "http://comptox-dev.epa.gov/dashboard/dsstoxdb/calculation_details?model_id=26&search=20584",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : "Available",
+          "link" : "https://comptox.epa.gov/dashboard-api/ccdapp1/qmrfdata/file/by-modelid/26",
+          "showLink" : true
+        }
+      } ],
+      "count" : 1,
+      "mean" : 3.24,
+      "min" : 3.24,
+      "max" : 3.24,
+      "range" : [ 3.24, 3.24 ],
+      "median" : 3.24
+    },
+    "experimental" : {
+      "rawData" : [ {
+        "value" : 3.25,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "PhysPropNCCT",
+        "description" : "The PHYSPROP data sets are the publicly available data files underpinning the EPISuiteTM prediction models.  The data were curated by NCCT using a combination of manual and automated processing routines with only the highest quality data reported.",
+        "experimentalDetails" : [ ]
+      } ],
+      "count" : 1,
+      "mean" : 3.25,
+      "min" : 3.25,
+      "max" : 3.25,
+      "range" : [ 3.25, 3.25 ],
+      "median" : 3.25
+    }
+  }, {
+    "unit" : "Log10 unitless",
+    "name" : "LogKow: Octanol-Water",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : -0.31,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "OPERA 2.6",
+        "description" : "OPERA is a free and open source/open data suite of QSAR Models providing predictions and additional information including applicability domain and accuracy assessment, as described in the publication <a href='http://dx.doi.org/10.1186/s13321-018-0263-1'target='_blank'>OPERA models for predicting physicochemical properties and environmental fate endpoints</a>. All models were built on curated data and standardized chemical structures as described in the publication <a href='http://dx.doi.org/10.1080/1062936X.2016.1253611'target='_blank'>An automated curation procedure for addressing chemical errors and inconsistencies in public datasets used in QSAR modelling</a>. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius.",
+        "modelName" : "OPERA_LogP",
+        "modelId" : 22,
+        "hasOpera" : true,
+        "globalApplicability" : 1,
+        "hasQmrfPdf" : true,
+        "details" : {
+          "value" : "Available",
+          "link" : "http://comptox-dev.epa.gov/dashboard/dsstoxdb/calculation_details?model_id=22&search=20584",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : "Available",
+          "link" : "https://comptox.epa.gov/dashboard-api/ccdapp1/qmrfdata/file/by-modelid/22",
+          "showLink" : true
+        }
+      }, {
+        "value" : -0.227,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>. ",
+        "modelName" : "ACD_LogP_v_LogP_Classic",
+        "modelId" : 125,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : -0.14,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "EPISUITE",
+        "description" : "<a href='https://www.epa.gov/tsca-screening-tools/epi-suitetm-estimation-program-interface' target='_blank'>EPISUITE Estimation Programs Interface Suite™</a> is a Windows®-based suite of physical/chemical property and environmental fate estimation programs developed by EPA’s and Syracuse Research Corp.",
+        "modelName" : "EPISUITE_LOGP",
+        "modelId" : 35,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 3,
+      "mean" : -0.22566666666666668,
+      "min" : -0.31,
+      "max" : -0.14,
+      "range" : [ -0.31, -0.14 ],
+      "median" : -0.227
+    },
+    "experimental" : {
+      "rawData" : [ {
+        "value" : -0.31,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "PhysPropNCCT",
+        "description" : "The PHYSPROP data sets are the publicly available data files underpinning the EPISuiteTM prediction models.  The data were curated by NCCT using a combination of manual and automated processing routines with only the highest quality data reported.",
+        "experimentalDetails" : [ ]
+      }, {
+        "value" : -0.31,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Yalkowsky et al. Chemosphere 2002, 48, 487–509",
+        "description" : "Ran, Y.; He, Y.; Yang, G.; Johnson, J. L. H.; Yalkowsky, S. H. Estimation of aqueous solubility of organic compounds by using the general solubility equation.  (<a href=\"http://dx.doi.org/10.15152/QDB.188\" target=\"_blank\">Chemosphere 2002, 48, 487–509</a>)\r\n",
+        "experimentalDetails" : [ ]
+      } ],
+      "count" : 2,
+      "mean" : -0.31,
+      "min" : -0.31,
+      "max" : -0.31,
+      "range" : [ -0.31, -0.31 ],
+      "median" : -0.31
+    }
+  }, {
+    "unit" : "Log10 unitless",
+    "name" : "pKa Acidic Apparent",
+    "predicted" : {
+      "rawData" : [ {
+        "value" : 12.31,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "OPERA 2.6",
+        "description" : "OPERA is a free and open source/open data suite of QSAR Models providing predictions and additional information including applicability domain and accuracy assessment, as described in the publication <a href='http://dx.doi.org/10.1186/s13321-018-0263-1'target='_blank'>OPERA models for predicting physicochemical properties and environmental fate endpoints</a>. All models were built on curated data and standardized chemical structures as described in the publication <a href='http://dx.doi.org/10.1080/1062936X.2016.1253611'target='_blank'>An automated curation procedure for addressing chemical errors and inconsistencies in public datasets used in QSAR modelling</a>. All OPERA properties are predicted under ambient conditions of 760mm of Hg at 25 degrees Celsius.",
+        "modelName" : "OPERA_pKa_Acidic",
+        "modelId" : 215,
+        "hasOpera" : true,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Available",
+          "link" : "http://comptox-dev.epa.gov/dashboard/dsstoxdb/calculation_details?model_id=215&search=20584",
+          "showLink" : true
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      }, {
+        "value" : 15.24,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Percepta2023.1.2",
+        "description" : "ACD/Labs physicochemical properties are predicted by the <a href='http://www.acdlabs.com/products/percepta/' target='_blank'>ACD/Labs Percepta Platform</a>.",
+        "modelName" : "ACD_pKa_Apparent_MA",
+        "modelId" : 1221,
+        "hasOpera" : false,
+        "globalApplicability" : null,
+        "hasQmrfPdf" : false,
+        "details" : {
+          "value" : "Not Available",
+          "link" : null,
+          "showLink" : false
+        },
+        "qmrf" : {
+          "value" : null,
+          "link" : null,
+          "showLink" : false
+        }
+      } ],
+      "count" : 2,
+      "mean" : 13.775,
+      "min" : 12.31,
+      "max" : 15.24,
+      "range" : [ 12.31, 15.24 ],
+      "median" : 13.775
+    },
+    "experimental" : {
+      "rawData" : [ {
+        "value" : 15.54,
+        "minValue" : null,
+        "maxValue" : null,
+        "source" : "Data Warrior",
+        "description" : "This pKa data was from the DataWarrior application (<a href = \"http://www.openmolecules.org/\" >http://www.openmolecules.org/</a>). A file named \"pKaInWater.dwar\" containing the pKa data is included in the DataWarrior download and contains experimentally-measured pKa values in water for 7912 chemicals along with SMILES strings. The providers of the original file collected and compiled pKa values representing different protonation states. Unfortunately, there are no literature references to support the pKa values. Most of these values are given as an average of multiple experimental values. ",
+        "experimentalDetails" : [ ]
+      } ],
+      "count" : 1,
+      "mean" : 15.54,
+      "min" : 15.54,
+      "max" : 15.54,
+      "range" : [ 15.54, 15.54 ],
+      "median" : 15.54
+    }
+  } ],
+  "_links" : {
+    "self" : {
+      "href" : "http://ccte-api-ccd.epa.gov/ccdapp2/chemical-property/67f47fd7b3d04a3fb42cc71a"
+    },
+    "chemicalproperty" : {
+      "href" : "http://ccte-api-ccd.epa.gov/ccdapp2/chemical-property/67f47fd7b3d04a3fb42cc71a"
+    }
+  }
+}

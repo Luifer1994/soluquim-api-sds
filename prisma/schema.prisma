@@ -1,0 +1,265 @@
+// Base de datos PROPIA de soluquim-api-sds (contenedor sds-postgres, PostgreSQL 16 + pgvector).
+// Ningún otro servicio lee ni escribe estas tablas.
+//
+// Convenciones:
+//  - Tablas y columnas en snake_case (@@map / @map), modelos y campos en PascalCase/camelCase.
+//  - Referencias a datos de OTROS servicios (tenant, usuario, país, producto) se guardan como valor,
+//    sin FK: viven en otra base de datos.
+//  - `tenant_id` en todo lo que pertenece a una empresa; los datos públicos de sustancias son globales.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// ─── Sustancias (global) ─────────────────────────────────────────────────────
+
+/// Sustancia identificada por CAS. Datos de identificación (PubChem).
+model Substance {
+  cas       String   @id @db.VarChar(12)
+  name      String?  @db.VarChar(500)
+  iupacName String?  @map("iupac_name") @db.Text
+  formula   String?  @db.VarChar(255)
+  synonyms  String[] @default([])
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  sourceData SubstanceSourceData[]
+
+  @@map("substances")
+}
+
+enum SourceStatus {
+  OK
+  NOT_FOUND
+  FAILED
+  CIRCUIT_OPEN
+  SKIPPED
+
+  @@map("source_status")
+}
+
+/// Dato VIGENTE de cada fuente para un CAS (una fila por cas+fuente). Cuando la fuente cambia, la
+/// versión anterior pasa a `substance_source_data_history` y esta fila se actualiza (version + 1).
+model SubstanceSourceData {
+  id            String       @id @default(uuid()) @db.Uuid
+  cas           String       @db.VarChar(12)
+  source        String       @db.VarChar(40)
+  status        SourceStatus
+  /// SourceRecord[] normalizados: { field, label, value, unit, sourceUrl }
+  records       Json         @default("[]")
+  /// SHA-256 de `records`: si una consulta nueva trae lo mismo, no se crea versión.
+  contentHash   String?      @map("content_hash") @db.Char(64)
+  version       Int          @default(1)
+  error         String?      @db.Text
+  durationMs    Int?         @map("duration_ms")
+  /// Última vez que se consultó la fuente (aunque no haya cambiado nada).
+  retrievedAt   DateTime     @map("retrieved_at") @db.Timestamptz(3)
+  /// Desde cuándo rige esta versión (la última vez que el contenido CAMBIÓ).
+  validFrom     DateTime     @default(now()) @map("valid_from") @db.Timestamptz(3)
+  expiresAt     DateTime     @map("expires_at") @db.Timestamptz(3)
+  rawSnapshotId String?      @map("raw_snapshot_id") @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  substance   Substance    @relation(fields: [cas], references: [cas], onDelete: Cascade)
+  rawSnapshot RawSnapshot? @relation(fields: [rawSnapshotId], references: [id], onDelete: SetNull)
+
+  @@unique([cas, source])
+  @@index([expiresAt])
+  @@map("substance_source_data")
+}
+
+/// Versiones ANTERIORES de cada fuente (auditoría: qué decía la fuente y cuándo). Solo se inserta.
+model SubstanceSourceDataHistory {
+  id            String       @id @default(uuid()) @db.Uuid
+  cas           String       @db.VarChar(12)
+  source        String       @db.VarChar(40)
+  version       Int
+  status        SourceStatus
+  records       Json
+  contentHash   String?      @map("content_hash") @db.Char(64)
+  validFrom     DateTime     @map("valid_from") @db.Timestamptz(3)
+  validTo       DateTime     @map("valid_to") @db.Timestamptz(3)
+  rawSnapshotId String?      @map("raw_snapshot_id") @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([cas, source, version])
+  @@index([cas, source, validTo])
+  @@map("substance_source_data_history")
+}
+
+// ─── Base de conocimiento para el agente (RAG sobre pgvector) ────────────────
+
+/// Fragmento de conocimiento vectorizado. Hoy: los datos de cada fuente por CAS, agrupados por tema y
+/// etiquetados con las secciones de la FDS que alimentan. Mañana: también normativa por país.
+/// Se re-vectoriza SOLO si cambia el contenido (content_hash).
+model KnowledgeChunk {
+  id             String                       @id @default(uuid()) @db.Uuid
+  /// CAS al que se refiere (null = conocimiento general, p. ej. normativa).
+  cas            String?                      @db.VarChar(12)
+  source         String                       @db.VarChar(40)
+  /// Clave estable del fragmento dentro de (cas, fuente): p. ej. "exposure", "ghs.harmonised".
+  chunkKey       String                       @map("chunk_key") @db.VarChar(120)
+  /// Versión de los datos de la fuente de la que salió.
+  sourceVersion  Int                          @default(1) @map("source_version")
+  sdsSections    Int[]                        @map("sds_sections")
+  title          String                       @db.Text
+  content        String                       @db.Text
+  language       String                       @default("en") @db.VarChar(5)
+  sourceUrl      String?                      @map("source_url") @db.Text
+  contentHash    String                       @map("content_hash") @db.Char(64)
+  /// Vector del contenido. Null = pendiente de vectorizar (p. ej. sin clave de API).
+  embedding      Unsupported("vector(1536)")?
+  embeddingModel String?                      @map("embedding_model") @db.VarChar(100)
+  createdAt      DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([cas, source, chunkKey])
+  @@index([cas])
+  @@index([sdsSections], type: Gin, map: "knowledge_chunks_sds_sections_gin_idx")
+  // El índice HNSW del embedding se crea en SQL (migración 20261002180000): Prisma no lo soporta.
+  // Al crear migraciones nuevas, borrar cualquier DROP INDEX "knowledge_chunks_embedding_hnsw_idx".
+  @@map("knowledge_chunks")
+}
+
+/// Respuesta cruda (HTML/JSON) de una extracción, comprimida. Permite auditar y re-parsear sin volver a llamar a la fuente.
+model RawSnapshot {
+  id          String   @id @default(uuid()) @db.Uuid
+  cas         String   @db.VarChar(12)
+  source      String   @db.VarChar(40)
+  url         String   @db.Text
+  contentType String   @map("content_type") @db.VarChar(100)
+  /// Contenido comprimido con gzip.
+  content     Bytes
+  sha256      String   @db.Char(64)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  sourceData SubstanceSourceData[]
+
+  @@index([cas, source])
+  @@map("raw_snapshots")
+}
+
+// ─── Generación de FDS (por tenant) ──────────────────────────────────────────
+
+enum SdsGenerationStatus {
+  QUEUED
+  EXTRACTING
+  CLASSIFYING
+  DRAFTING
+  COMPLETED
+  PARTIAL
+  FAILED
+
+  @@map("sds_generation_status")
+}
+
+/// Un pedido de generación de FDS y su avance.
+model SdsGenerationJob {
+  id          String              @id @default(uuid()) @db.Uuid
+  tenantId    String              @map("tenant_id") @db.VarChar(64)
+  /// SHA-256 de la mezcla normalizada + país + idioma + rulesVersion.
+  mixtureKey  String              @map("mixture_key") @db.Char(64)
+  /// Solicitud original validada (GenerateSdsRequestDTO).
+  request     Json
+  status      SdsGenerationStatus @default(QUEUED)
+  /// Avance por fuente y componente, para mostrar en el front.
+  progress    Json                @default("{}")
+  error       String?             @db.Text
+  documentId  String?             @map("document_id") @db.Uuid
+  requestedBy String?             @map("requested_by") @db.VarChar(64)
+  startedAt   DateTime?           @map("started_at") @db.Timestamptz(3)
+  finishedAt  DateTime?           @map("finished_at") @db.Timestamptz(3)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  document SdsDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, mixtureKey, status])
+  @@index([tenantId, createdAt])
+  @@map("sds_generation_jobs")
+}
+
+// ─── Documento FDS y su revisión (por tenant) ────────────────────────────────
+
+enum SdsDocumentStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  SUPERSEDED
+
+  @@map("sds_document_status")
+}
+
+model SdsDocument {
+  id            String            @id @default(uuid()) @db.Uuid
+  tenantId      String            @map("tenant_id") @db.VarChar(64)
+  /// Producto en Soluquim (referencia opcional, sin FK).
+  productId     String?           @map("product_id") @db.Uuid
+  mixtureKey    String            @map("mixture_key") @db.Char(64)
+  /// País de destino (catálogo de Soluquim, sin FK). Opcional mientras no se integre con core.
+  countryId     Int?              @map("country_id")
+  /// País de destino como código ISO 3166-1 alfa-2 (CO, MX, ES…).
+  countryCode   String?           @map("country_code") @db.VarChar(2)
+  language      String            @db.VarChar(5)
+  version       Int               @default(1)
+  status        SdsDocumentStatus @default(DRAFT)
+  /// Las 16 secciones.
+  content       Json
+  /// Para cada dato: fuente, URL y fecha de extracción.
+  provenance    Json              @default("{}")
+  /// Datos que no se pudieron sustentar con ninguna fuente.
+  missingData   Json              @default("[]") @map("missing_data")
+  rulesVersion  String            @map("rules_version") @db.VarChar(40)
+  llmModel      String?           @map("llm_model") @db.VarChar(100)
+  promptVersion String?           @map("prompt_version") @db.VarChar(40)
+  createdBy     String?           @map("created_by") @db.VarChar(64)
+  approvedBy    String?           @map("approved_by") @db.VarChar(64)
+  approvedAt    DateTime?         @map("approved_at") @db.Timestamptz(3)
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  reviews SdsDocumentReview[]
+  jobs    SdsGenerationJob[]
+
+  @@index([tenantId, mixtureKey])
+  @@index([tenantId, status])
+  @@index([tenantId, productId])
+  @@map("sds_documents")
+}
+
+enum SdsReviewAction {
+  SECTION_EDITED
+  SUBMITTED
+  APPROVED
+  REJECTED
+
+  @@map("sds_review_action")
+}
+
+/// Historial de revisión: quién hizo qué y cuándo. Solo se inserta, nunca se modifica.
+model SdsDocumentReview {
+  id         String          @id @default(uuid()) @db.Uuid
+  documentId String          @map("document_id") @db.Uuid
+  action     SdsReviewAction
+  section    Int?
+  comment    String?         @db.Text
+  /// Para SECTION_EDITED: valor anterior y nuevo de la sección.
+  changes    Json?
+  userId     String          @map("user_id") @db.VarChar(64)
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  document SdsDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, createdAt])
+  @@map("sds_document_reviews")
+}
