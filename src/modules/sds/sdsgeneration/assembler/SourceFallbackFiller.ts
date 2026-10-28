@@ -1,7 +1,12 @@
 import { SdsProductKind, SdsSectionCatalog } from '@/modules/knowledge';
 import { SourceRecord } from '@/modules/source';
 import { CurrentSourceData } from '@/modules/substance';
-import { SdsCitationDTO, SdsSectionSuggestionDTO } from '@/modules/sds/sdsdocument/dto/response';
+import {
+  SdsCitationDTO,
+  SdsFieldProposalDTO,
+  SdsSectionSuggestionDTO,
+  SdsSourceEvidenceDTO,
+} from '@/modules/sds/sdsdocument/dto/response';
 import { SdsSectionContentMapper } from '@/modules/sds/sdsdocument/mapper';
 import { SectionSuggestionBuilder } from '@/modules/sds/sdsgeneration/assembler/SectionSuggestionBuilder';
 
@@ -144,6 +149,39 @@ export class SourceFallbackFiller {
 
     // Si el agente falló y las fuentes tampoco aportan nada, la sección sigue sin sugerencia.
     return input.suggestion || filled ? result : null;
+  }
+
+  /**
+   * Dato de las fuentes ya guardadas en la sección que corresponde a un campo de la plantilla.
+   * Sirve para volver a sugerir un campo cuya sugerencia original no quedó guardada.
+   */
+  static proposeFromEvidence(
+    number: number,
+    key: string,
+    evidence: SdsSourceEvidenceDTO[],
+    language: string,
+    isMixture: boolean,
+  ): SdsFieldProposalDTO | null {
+    const byCas = new Map<string, CurrentSourceData>();
+    for (const item of evidence) {
+      const current = byCas.get(item.cas) ?? { cas: item.cas, substanceName: item.componentName, sources: [] };
+      current.sources.push({
+        source: item.source,
+        status: 'OK',
+        version: item.sourceVersion,
+        sourceUrl: item.sourceUrl,
+        records: item.records,
+      });
+      byCas.set(item.cas, current);
+    }
+    const sourced = SourceFallbackFiller.resolve(RULES[number]?.[key] ?? [], {
+      number,
+      suggestion: null,
+      components: [...byCas.values()],
+      productKind: isMixture ? 'mixture' : 'substance',
+      language,
+    });
+    return sourced ? { value: sourced.value, origin: 'source', citations: sourced.citations } : null;
   }
 
   private static resolve(

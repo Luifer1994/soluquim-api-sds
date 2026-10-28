@@ -263,3 +263,122 @@ model SdsDocumentReview {
   @@index([documentId, createdAt])
   @@map("sds_document_reviews")
 }
+
+// ─── Documentación de referencia (RAG general) ────────────────────────────────────────────────────
+
+enum ReferenceDocumentStatus {
+  /// Subido, esperando al worker.
+  PENDING
+  /// El worker está extrayendo el texto y vectorizando.
+  PROCESSING
+  /// Indexado: el agente lo consulta en cada generación.
+  READY
+  FAILED
+
+  @@map("reference_document_status")
+}
+
+enum ReferenceDocumentCategory {
+  /// Normativa (decretos, resoluciones, reglamentos).
+  REGULATION
+  /// Libros y guías oficiales: SGA (libro púrpura), GRE, Reglamentación Modelo (libro naranja).
+  GUIDE
+  /// Manuales técnicos: Manual de Pruebas y Criterios.
+  MANUAL
+  /// Procedimientos e instructivos internos (p. ej. TR-P-01 Diseño de FDS).
+  PROCEDURE
+  /// Listados de bases de datos o páginas de consulta.
+  DATABASE
+  /// Documento del producto: FDS del proveedor de una materia prima.
+  SUPPLIER_SDS
+  /// Documento del producto: FDS de un producto análogo (otra marca, concentración parecida).
+  ANALOGOUS_SDS
+  /// Documento del producto: ficha de una base de datos (ECHA, GESTIS, eChemPortal…) de un componente.
+  DATABASE_EXTRACT // en desuso: ya no se acepta; se quita en el próximo reset de la BD
+  /// Documento del producto: datos del producto FINAL (certificado de análisis, ficha técnica, requisitos del cliente).
+  PRODUCT_DATA
+  OTHER
+
+  @@map("reference_document_category")
+}
+
+enum ReferenceDocumentScope {
+  /// Biblioteca: el agente la consulta en TODAS las generaciones (SGA, GRE, procedimientos).
+  LIBRARY
+  /// Documento de un producto: solo entra en las generaciones que lo adjuntan (FDS de materias primas…).
+  PRODUCT
+
+  @@map("reference_document_scope")
+}
+
+/// Documento de referencia que el agente consulta SIEMPRE al redactar (además de los datos por CAS).
+model ReferenceDocument {
+  id            String                    @id @default(uuid()) @db.Uuid
+  /// Empresa dueña; null = de toda la plataforma (SGA, GRE, procedimientos de M&S).
+  tenantId      String?                   @map("tenant_id") @db.VarChar(64)
+  title         String                    @db.VarChar(200)
+  description   String?                   @db.Text
+  category      ReferenceDocumentCategory @default(OTHER)
+  scope         ReferenceDocumentScope    @default(LIBRARY)
+  /// Documento del producto: CAS del componente que describe (null = el producto o un análogo).
+  cas           String?                   @db.VarChar(20)
+  /// Idioma del contenido (el agente traduce al idioma de la FDS).
+  language      String                    @default("es") @db.VarChar(5)
+  /// Secciones de la FDS a las que aporta; vacío = a todas.
+  sdsSections   Int[]                     @default([]) @map("sds_sections")
+  fileName      String                    @map("file_name") @db.VarChar(255)
+  mimeType      String                    @map("mime_type") @db.VarChar(150)
+  sizeBytes     Int                       @map("size_bytes")
+  /// SHA-256 del archivo: evita subir dos veces el mismo documento.
+  contentHash   String                    @map("content_hash") @db.Char(64)
+  status        ReferenceDocumentStatus   @default(PENDING)
+  pageCount     Int?                      @map("page_count")
+  chunkCount    Int                       @default(0) @map("chunk_count")
+  embeddedCount Int                       @default(0) @map("embedded_count")
+  /// Motivo del fallo de indexación (FAILED).
+  error         String?                   @db.Text
+  indexedAt     DateTime?                 @map("indexed_at") @db.Timestamptz(3)
+  createdBy     String?                   @map("created_by") @db.VarChar(64)
+  createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  file   ReferenceDocumentFile?
+  chunks ReferenceChunk[]
+
+  @@index([scope, status])
+  @@index([contentHash])
+  @@map("reference_documents")
+}
+
+/// Archivo original (aparte, para que listar documentos no cargue los binarios).
+model ReferenceDocumentFile {
+  documentId String @id @map("document_id") @db.Uuid
+  content    Bytes
+
+  document ReferenceDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("reference_document_files")
+}
+
+/// Fragmento vectorizado de un documento de referencia, con las páginas de donde salió.
+model ReferenceChunk {
+  id             String                       @id @default(uuid()) @db.Uuid
+  documentId     String                       @map("document_id") @db.Uuid
+  /// Orden dentro del documento (0, 1, 2…).
+  position       Int
+  pageFrom       Int?                         @map("page_from")
+  pageTo         Int?                         @map("page_to")
+  content        String                       @db.Text
+  /// Secciones de FDS detectadas en el fragmento (documentos que son FDS: "SECCIÓN 5…").
+  sdsSections    Int[]                        @default([]) @map("sds_sections")
+  /// Vector del contenido. Null = pendiente de vectorizar (p. ej. sin clave de API).
+  embedding      Unsupported("vector(1536)")?
+  embeddingModel String?                      @map("embedding_model") @db.VarChar(100)
+  createdAt      DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  document ReferenceDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, position])
+  // El índice HNSW del embedding se crea en SQL (migración 20261020000000): Prisma no lo soporta.
+  @@map("reference_chunks")
+}

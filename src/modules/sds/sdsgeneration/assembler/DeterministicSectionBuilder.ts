@@ -1,4 +1,5 @@
 import { GhsStatementCatalog, SdsProductKind, SdsSectionCatalog } from '@/modules/knowledge';
+import { PRODUCT_DOCUMENT_CITATION_SOURCE, REFERENCE_CITATION_SOURCE, referenceDocumentOf } from '@/modules/reference';
 import { CurrentSourceData } from '@/modules/substance';
 import { SdsSectionSuggestionDTO } from '@/modules/sds/sdsdocument/dto/response';
 import { SectionSuggestionBuilder } from '@/modules/sds/sdsgeneration/assembler/SectionSuggestionBuilder';
@@ -52,6 +53,26 @@ export class DeterministicSectionBuilder {
       }
     }
 
+    // Documentos que el agente citó en la ficha (sin repetir, sin las páginas): los del producto (FDS de
+    // las materias primas, de análogos…) y la documentación de referencia (SGA, GRE…).
+    const citedDocuments = (source: string) =>
+      [
+        ...new Set(
+          [...input.sections.values()].flatMap(
+            (section) =>
+              section?.subsections.flatMap((sub) =>
+                sub.fields.flatMap((field) =>
+                  field.citations
+                    .filter((citation) => citation.source === source)
+                    .map((citation) => referenceDocumentOf(citation.title)),
+                ),
+              ) ?? [],
+          ),
+        ),
+      ].sort();
+    const productDocuments = citedDocuments(PRODUCT_DOCUMENT_CITATION_SOURCE);
+    const references = citedDocuments(REFERENCE_CITATION_SOURCE);
+
     // Texto íntegro de las frases H citadas en las secciones 2 y 3: del catálogo oficial, no de la IA.
     const cited = H_STATEMENT_SECTIONS.flatMap(
       (number) => input.sections.get(number)?.subsections.flatMap((sub) => sub.fields.map((f) => f.value)) ?? [],
@@ -65,7 +86,17 @@ export class DeterministicSectionBuilder {
       {
         preparationDate: input.generatedAt.toISOString().slice(0, 10),
         hStatementsFullText: GhsStatementCatalog.render(hStatements) || null,
-        dataSources: [...sources.values()].join('\n') || null,
+        dataSources:
+          [
+            ...sources.values(),
+            ...(productDocuments.length
+              ? [
+                  'Documentos del producto (FDS de materias primas y otros):',
+                  ...productDocuments.map((title) => `- ${title}`),
+                ]
+              : []),
+            ...(references.length ? ['Documentación de referencia:', ...references.map((title) => `- ${title}`)] : []),
+          ].join('\n') || null,
       },
       'system',
       input.language,

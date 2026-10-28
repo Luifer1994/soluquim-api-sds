@@ -1,3 +1,4 @@
+export * from '@/modules/sds/sdsmixture/concentration';
 export * from '@/modules/sds/sdsmixture/controller';
 export * from '@/modules/sds/sdsmixture/dto/request';
 export * from '@/modules/sds/sdsmixture/dto/response';

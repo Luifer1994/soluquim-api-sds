@@ -5,6 +5,7 @@ import { Result } from '@/shared/util';
 import { SdsDocumentFieldParamsDTO, UpdateSdsDocumentFieldDTO } from '@/modules/sds/sdsdocument/dto/request';
 import { SdsCitationDTO, SdsDocumentContentDTO, SdsSectionDTO } from '@/modules/sds/sdsdocument/dto/response';
 import { SdsSectionContentMapper } from '@/modules/sds/sdsdocument/mapper';
+import { SdsFieldProposal } from '@/modules/sds/sdsdocument/mapper/SdsFieldProposal';
 import { SdsDocumentRepository } from '@/modules/sds/sdsdocument/repository';
 
 export type UpdateSdsDocumentFieldInput = SdsDocumentFieldParamsDTO & UpdateSdsDocumentFieldDTO;
@@ -39,6 +40,24 @@ export class UpdateSdsDocumentFieldService extends BaseService<UpdateSdsDocument
         );
       }
 
+      const prepared = SdsFieldProposal.ensure(section, content.language, content.isMixture);
+      if (input.restoreProposed) {
+        const proposed = prepared.suggestion?.subsections
+          .flatMap((sub) => sub.fields)
+          .find((field) => field.key === input.key)?.proposed;
+        if (!proposed) {
+          return Result.failure(
+            'SDS_SUGGESTION_NOT_FOUND',
+            'No hay una sugerencia guardada para este campo',
+            HttpStatus.UNPROCESSABLE_ENTITY,
+          );
+        }
+        input = { ...input, value: proposed.value, source: undefined };
+      }
+      if (input.value === undefined) {
+        return Result.failure('SDS_FIELD_VALUE_REQUIRED', 'Indica el valor del campo', HttpStatus.BAD_REQUEST);
+      }
+
       let citations: SdsCitationDTO[] = [];
       if (input.value && input.source) {
         const evidence = section.bySource.find((e) => e.source === input.source?.source && e.cas === input.source.cas);
@@ -61,7 +80,7 @@ export class UpdateSdsDocumentFieldService extends BaseService<UpdateSdsDocument
       }
 
       const suggestion = SdsSectionContentMapper.applyChange(
-        section.suggestion,
+        prepared.suggestion!,
         input.key,
         {
           value: input.value,

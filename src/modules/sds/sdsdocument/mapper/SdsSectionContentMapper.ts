@@ -2,6 +2,7 @@ import { GhsPictogramCatalog, GhsStatementCatalog } from '@/modules/knowledge';
 import {
   SdsCitationDTO,
   SdsFieldDTO,
+  SdsFieldProposalDTO,
   SdsSectionSuggestionDTO,
   SdsSubsectionDTO,
 } from '@/modules/sds/sdsdocument/dto/response';
@@ -48,16 +49,37 @@ export class SdsSectionContentMapper {
   static withDerived(field: SdsFieldDTO, language: string): SdsFieldDTO {
     if (field.kind === 'pictograms') {
       const pictograms = GhsPictogramCatalog.fromText(field.value);
-      return { ...field, value: pictograms.map((p) => p.code).join(', ') || field.value, pictograms };
+      return SdsSectionContentMapper.seal({
+        ...field,
+        value: pictograms.map((p) => p.code).join(', ') || field.value,
+        pictograms,
+      });
     }
     if (field.kind === 'statements') {
       const statements = GhsStatementCatalog.parse(field.value, language);
-      return { ...field, value: statements.length ? GhsStatementCatalog.render(statements) : field.value, statements };
+      return SdsSectionContentMapper.seal({
+        ...field,
+        value: statements.length ? GhsStatementCatalog.render(statements) : field.value,
+        statements,
+      });
     }
     if (field.kind === 'signalWord' && field.value) {
-      return { ...field, value: GhsStatementCatalog.signalWord(field.value, language) };
+      return SdsSectionContentMapper.seal({ ...field, value: GhsStatementCatalog.signalWord(field.value, language) });
     }
-    return field;
+    return SdsSectionContentMapper.seal(field);
+  }
+
+  /** La sugerencia vigente del campo, si el valor actual todavía es el propuesto (no texto del revisor). */
+  static proposalOf(field: SdsFieldDTO): SdsFieldProposalDTO | undefined {
+    if (field.proposed) return field.proposed;
+    if (!field.value || !field.origin || field.origin === 'user') return undefined;
+    return { value: field.value, origin: field.origin, citations: field.citations };
+  }
+
+  /** Deja escrita la sugerencia la primera vez que el campo tiene un valor que no escribió el revisor. */
+  static seal(field: SdsFieldDTO): SdsFieldDTO {
+    const proposed = SdsSectionContentMapper.proposalOf(field);
+    return proposed ? { ...field, proposed } : field;
   }
 
   /**
@@ -73,9 +95,23 @@ export class SdsSectionContentMapper {
     if (!suggestion.subsections.some((sub) => sub.fields.some((field) => field.key === key))) return null;
     const subsections = suggestion.subsections.map((sub) => ({
       ...sub,
-      fields: sub.fields.map((field) =>
-        field.key === key ? SdsSectionContentMapper.withDerived({ ...field, ...change }, language) : field,
-      ),
+      fields: sub.fields.map((field) => {
+        if (field.key !== key) return field;
+        const proposed = SdsSectionContentMapper.proposalOf(field);
+        const restoring = proposed != null && (change.value?.trim() || null) === proposed.value.trim();
+        const next: SdsFieldDTO = restoring
+          ? {
+              ...field,
+              proposed,
+              value: proposed.value,
+              origin: proposed.origin,
+              citations: proposed.citations,
+              editedAt: undefined,
+              editedBy: undefined,
+            }
+          : { ...field, proposed, ...change };
+        return SdsSectionContentMapper.withDerived(next, language);
+      }),
     }));
     return {
       ...suggestion,

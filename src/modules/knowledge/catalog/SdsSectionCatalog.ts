@@ -73,7 +73,7 @@ export const SDS_SECTIONS: readonly SdsSectionDefinition[] = [
           f(
             'classification',
             'Clasificación',
-            'Una línea por clase: clase y categoría de peligro con su código H (p. ej. "Líquidos inflamables, categoría 2 — H225"). Sustancia: la armonizada (CLP Anexo VI) si existe. Mezcla: un bloque por componente ("Acetona (60 %):" y debajo sus clases) y al final "Clasificación de la mezcla: pendiente del cálculo SGA".',
+            'Una línea por clase: primero la clase de peligro, luego la categoría y su código H (p. ej. "Líquidos inflamables, categoría 2 — H225"); en toxicidad específica de órganos diana, los órganos entre paréntesis. Sustancia: la armonizada (CLP Anexo VI) si existe. Mezcla: un bloque por componente ("Acetona (60 %):" y debajo sus clases) y al final "Clasificación de la mezcla: pendiente del cálculo SGA".',
           ),
         ],
       },
@@ -146,7 +146,7 @@ export const SDS_SECTIONS: readonly SdsSectionDefinition[] = [
           f(
             'components',
             'Componentes',
-            'Una línea por componente: nombre, No. CAS, No. CE, clasificación (clases y códigos H), factores M si los hay, y concentración (la de <product>).',
+            'Una línea por componente: nombre, No. CAS, No. CE, clasificación (clases y códigos H), factores M si los hay, y concentración (la de <product>, tal cual: con su símbolo o su rango, p. ej. "≤ 99 %").',
           ),
         ],
       },
@@ -463,6 +463,17 @@ export const SDS_SECTIONS: readonly SdsSectionDefinition[] = [
         title: 'Precauciones particulares para los usuarios',
         fields: [f('specialPrecautions', 'Precauciones particulares')],
       },
+      {
+        code: '14.7',
+        title: 'Transporte a granel con arreglo al anexo II del Convenio MARPOL 73/78 y al Código IBC',
+        fields: [
+          f(
+            'bulkTransport',
+            'Transporte a granel (MARPOL 73/78 Anexo II, Código IBC)',
+            'Solo si una fuente o la documentación de referencia lo indica para este producto.',
+          ),
+        ],
+      },
     ],
   },
   {
@@ -475,6 +486,11 @@ export const SDS_SECTIONS: readonly SdsSectionDefinition[] = [
         title:
           'Reglamentación y legislación en materia de seguridad, salud y medio ambiente específicas para la sustancia o la mezcla',
         fields: [
+          f(
+            'nationalRegulations',
+            'Reglamentación nacional del país de destino',
+            'Normativa de seguridad química del país de destino (la arma el sistema con el perfil del país).',
+          ),
           f(
             'euHarmonisedClassification',
             'Clasificación y etiquetado armonizados (UE, CLP Anexo VI)',

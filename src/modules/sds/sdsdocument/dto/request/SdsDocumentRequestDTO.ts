@@ -19,19 +19,27 @@ export type SdsDocumentFieldParamsDTO = z.infer<typeof SdsDocumentFieldParamsSch
 /**
  * PATCH de un campo de la FDS. `value` null o vacío = dejar el campo sin dato.
  * `source`: de qué fuente tomó el usuario el valor (queda como cita); sin `source` es texto del usuario.
+ * `restoreProposed`: vuelve a dejar la sugerencia original (la guardada o, si no quedó, la que se arma
+ * con las fuentes de esa sección) y la persiste.
  */
-export const UpdateSdsDocumentFieldSchema = z.object({
-  value: z
-    .string()
-    .trim()
-    .max(20000)
-    .nullable()
-    .transform((value) => value || null),
-  source: z
-    .object({
-      source: z.string().trim().min(1).max(40),
-      cas: CasNumberSchema,
-    })
-    .optional(),
-});
+export const UpdateSdsDocumentFieldSchema = z
+  .object({
+    value: z
+      .string()
+      .trim()
+      .max(20000)
+      .nullable()
+      .optional()
+      .transform((value) => (value == null ? value : value || null)),
+    source: z
+      .object({
+        source: z.string().trim().min(1).max(40),
+        cas: CasNumberSchema,
+      })
+      .optional(),
+    restoreProposed: z.boolean().optional(),
+  })
+  .refine((data) => data.restoreProposed === true || data.value !== undefined, {
+    message: 'Indica el valor del campo o pide volver a la sugerencia',
+  });
 export type UpdateSdsDocumentFieldDTO = z.infer<typeof UpdateSdsDocumentFieldSchema>;

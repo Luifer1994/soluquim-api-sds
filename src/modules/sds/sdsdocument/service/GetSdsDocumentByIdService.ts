@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { BaseService } from '@/shared/base';
 import { RequestContext } from '@/shared/context';
 import { Result } from '@/shared/util';
+import { SdsFieldProposal } from '@/modules/sds/sdsdocument/mapper/SdsFieldProposal';
 import { SdsDocumentRepository } from '@/modules/sds/sdsdocument/repository';
 import { SdsDocumentContentDTO } from '@/modules/sds/sdsdocument/dto/response';
 
@@ -27,6 +28,7 @@ export class GetSdsDocumentByIdService extends BaseService<{ id: string }, SdsDo
     try {
       const document = await this.documents.findById(id, RequestContext.tenantIdOrDefault);
       if (!document) return Result.failure('SDS_DOCUMENT_NOT_FOUND', 'FDS no encontrada', HttpStatus.NOT_FOUND);
+      const content = document.content as unknown as SdsDocumentContentDTO;
       return Result.success({
         id: document.id,
         status: document.status,
@@ -36,7 +38,12 @@ export class GetSdsDocumentByIdService extends BaseService<{ id: string }, SdsDo
         llmModel: document.llmModel,
         promptVersion: document.promptVersion,
         createdAt: document.createdAt.toISOString(),
-        content: document.content as unknown as SdsDocumentContentDTO,
+        content: {
+          ...content,
+          sections: content.sections.map((section) =>
+            SdsFieldProposal.ensure(section, content.language, content.isMixture),
+          ),
+        },
       });
     } catch (error) {
       return this.handleException('GetSdsDocumentById', error);

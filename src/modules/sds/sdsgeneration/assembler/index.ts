@@ -6,3 +6,6 @@ export * from '@/modules/sds/sdsgeneration/assembler/RegulatorySectionBuilder';
 export * from '@/modules/sds/sdsgeneration/assembler/SectionEvidenceCollector';
 export * from '@/modules/sds/sdsgeneration/assembler/SectionSuggestionBuilder';
 export * from '@/modules/sds/sdsgeneration/assembler/SourceFallbackFiller';
+export * from '@/modules/sds/sdsgeneration/assembler/ProductReferenceQueryBuilder';
+export * from '@/modules/sds/sdsgeneration/assembler/MixtureConcentrationProfile';
+export * from '@/modules/sds/sdsgeneration/assembler/MixturePropertyFilter';

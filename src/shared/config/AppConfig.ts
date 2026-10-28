@@ -7,6 +7,12 @@ export interface AiConfig {
   llm: { model: string; temperature: number; maxOutputTokens: number; maxConcurrency: number };
   /** Caracteres máximos de contexto del RAG por llamada al agente. */
   contextMaxChars: number;
+  /** Caracteres máximos de documentación de referencia por llamada al agente. */
+  referenceContextMaxChars: number;
+  /** Caracteres máximos de documentos del producto por llamada al agente. */
+  productDocumentsContextMaxChars: number;
+  /** Redacción por etapas (coherencia entre secciones). */
+  stagedDrafting: boolean;
   /** Modelo por agente (nombre del agente → modelo). Si no está, LLM_MODEL. */
   agentModels: ReadonlyMap<string, string>;
   embedding: { model: string; dimensions: number };
@@ -41,6 +47,7 @@ export class AppConfig {
   /** Fuentes activas: `'*'` = todas, o la lista de códigos. */
   readonly sourcesEnabled: '*' | ReadonlySet<string>;
   readonly ai: AiConfig;
+  readonly reference: { maxUploadBytes: number };
 
   constructor(env: Env) {
     this.nodeEnv = env.NODE_ENV;
@@ -66,6 +73,9 @@ export class AppConfig {
         maxConcurrency: env.AI_LLM_MAX_CONCURRENCY,
       },
       contextMaxChars: env.AI_CONTEXT_MAX_CHARS,
+      referenceContextMaxChars: env.AI_REFERENCE_CONTEXT_MAX_CHARS,
+      productDocumentsContextMaxChars: env.AI_PRODUCT_DOCUMENTS_CONTEXT_MAX_CHARS,
+      stagedDrafting: env.AI_STAGED_DRAFTING,
       agentModels: new Map(
         env.AI_AGENT_MODELS.split(',')
           .map((pair) => pair.split('=').map((part) => part.trim()))
@@ -73,6 +83,7 @@ export class AppConfig {
       ),
       embedding: { model: env.AI_EMBEDDING_MODEL, dimensions: env.AI_EMBEDDING_DIMENSIONS },
     };
+    this.reference = { maxUploadBytes: env.REFERENCE_MAX_UPLOAD_MB * 1024 * 1024 };
     this.messaging = {
       url: env.RABBITMQ_URL,
       exchange: env.MESSAGING_EXCHANGE,

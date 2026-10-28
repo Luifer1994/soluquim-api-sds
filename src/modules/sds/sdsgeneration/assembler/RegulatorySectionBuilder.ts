@@ -1,7 +1,9 @@
 import { SdsProductKind, SdsSectionCatalog } from '@/modules/knowledge';
+import { COUNTRY_PROFILE_CITATION_SOURCE } from '@/modules/reference';
 import { CurrentSourceData } from '@/modules/substance';
 import { SdsCitationDTO, SdsSectionSuggestionDTO } from '@/modules/sds/sdsdocument/dto/response';
 import { SectionSuggestionBuilder, SourcedValue } from '@/modules/sds/sdsgeneration/assembler/SectionSuggestionBuilder';
+import { CountryRegulatoryProfile } from '@/modules/sds/sdsgeneration/country';
 
 type SourceEntry = CurrentSourceData['sources'][number];
 type Line = { text: string; citation: SdsCitationDTO };
@@ -42,6 +44,7 @@ export class RegulatorySectionBuilder {
     components: CurrentSourceData[],
     productKind: SdsProductKind,
     language: string,
+    country?: CountryRegulatoryProfile,
   ): SdsSectionSuggestionDTO {
     const collect = (pick: (component: CurrentSourceData) => Line[]): SourcedValue => {
       const blocks = components
@@ -63,6 +66,21 @@ export class RegulatorySectionBuilder {
     return SectionSuggestionBuilder.fromSources(
       SdsSectionCatalog.forProduct(15, productKind),
       {
+        // Normativa del país de destino: del perfil del país (procedimiento aprobado), no de las fuentes.
+        nationalRegulations: country
+          ? {
+              value: country.regulations.join('\n'),
+              citations: [
+                {
+                  ref: country.code,
+                  source: COUNTRY_PROFILE_CITATION_SOURCE,
+                  cas: null,
+                  title: `${country.name}: ${country.basis}`,
+                  sourceUrl: null,
+                },
+              ],
+            }
+          : undefined,
         euHarmonisedClassification: collect((c) =>
           RegulatorySectionBuilder.records<HarmonisedEntry[]>(c, 'ghs.harmonised').flatMap(({ value, citation }) =>
             (Array.isArray(value) ? value : []).map((entry) => ({

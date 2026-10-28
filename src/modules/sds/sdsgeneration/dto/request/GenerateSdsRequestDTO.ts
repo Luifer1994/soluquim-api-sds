@@ -22,6 +22,16 @@ export const GenerateSdsRequestSchema = z.object({
       productId: z.uuid().optional(),
     })
     .optional(),
+  /**
+   * Documentos del producto ya subidos (`POST /reference-documents` con scope PRODUCT): FDS de los
+   * proveedores de las materias primas, FDS de productos análogos, datos del producto final. El agente
+   * los usa como datos de este producto, además de las fuentes.
+   */
+  documentIds: z
+    .array(z.uuid({ error: 'documentIds debe tener UUIDs' }))
+    .max(30, 'Máximo 30 documentos')
+    .transform((ids) => [...new Set(ids)])
+    .optional(),
 });
 export type GenerateSdsRequestDTO = z.infer<typeof GenerateSdsRequestSchema>;
 

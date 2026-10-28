@@ -19,11 +19,23 @@ export interface SdsSourceEvidenceDTO {
   records: SourceRecord[];
 }
 
+/** Texto propuesto antes de que el revisor lo cambie. No se pisa al editar: sirve para volver a la sugerencia. */
+export interface SdsFieldProposalDTO {
+  value: string;
+  origin: 'request' | 'system' | 'agent' | 'source';
+  citations: SdsCitationDTO[];
+}
+
 export interface SdsFieldDTO {
   key: string;
   label: string;
   /** null = sin datos disponibles (ninguna fuente lo trae o no vino en la solicitud). */
   value: string | null;
+  /**
+   * Sugerencia original (IA o dato de una fuente). Se conserva aunque el revisor escriba otra cosa.
+   * En fichas ya editadas, si no quedó guardada, se reconstruye con las fuentes de la sección.
+   */
+  proposed?: SdsFieldProposalDTO;
   /**
    * De dónde salió: `request` (vino en la solicitud), `system`, `agent` (IA, con citas), `user` (lo escribió
    * el revisor), `source` (el revisor lo tomó de una fuente, que queda en `citations`) o null si está vacío.
@@ -78,7 +90,8 @@ export interface SdsDocumentContentDTO {
   destinationCountry?: string;
   /** Nombre y CAS del producto, tal como vinieron en la solicitud. */
   product: { name: string | null; cas: string | null };
-  components: Array<{ cas: string; name: string | null; percentage: number }>;
+  /** `percentage`: el máximo posible (para cálculos); `concentration`: como la declaró el usuario ("≤ 99 %"). */
+  components: Array<{ cas: string; name: string | null; percentage: number; concentration?: string }>;
   isMixture: boolean;
   sections: SdsSectionDTO[];
   generation: {
@@ -88,6 +101,12 @@ export interface SdsDocumentContentDTO {
     usage: { promptTokens: number; completionTokens: number; costUsd?: number };
     durationMs: number;
     knowledgeFragments: number;
+    /** Fragmentos de documentación de referencia (SGA, GRE, procedimientos…) que recibió el agente. */
+    referenceFragments?: number;
+    /** Fragmentos de documentos del producto (FDS de las materias primas, de análogos…) que recibió el agente. */
+    productDocumentFragments?: number;
+    /** Redactada por etapas (datos y clasificación primero, medidas después). */
+    staged?: boolean;
     errors: string[];
   };
 }

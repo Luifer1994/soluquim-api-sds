@@ -6,6 +6,7 @@ import { AppConfigModule } from '@/shared/config';
 import { GatewayContextMiddleware } from '@/shared/context';
 import { HttpExceptionFilter } from '@/shared/exception';
 import { KnowledgeModule } from '@/modules/knowledge';
+import { ReferenceModule } from '@/modules/reference';
 import { SdsModule } from '@/modules/sds';
 import { SubstanceModule } from '@/modules/substance';
 import { PermissionGuard } from '@/shared/guard';
@@ -33,6 +34,7 @@ import { SeedModule } from '@/shared/seed';
     // Módulos de negocio
     SubstanceModule,
     KnowledgeModule,
+    ReferenceModule,
     SdsModule,
   ],
   controllers: [IndexController],

@@ -7,7 +7,7 @@ import {
 } from '@/modules/sds/sdsdocument/dto/response';
 import { SdsSectionContentMapper } from '@/modules/sds/sdsdocument/mapper';
 import { SdsSectionDraft } from '@/modules/sds/sdsgeneration/agent';
-import { ProvenanceValidator } from '@/modules/sds/sdsgeneration/validator';
+import { ProhibitedPhraseValidator, ProvenanceValidator } from '@/modules/sds/sdsgeneration/validator';
 
 /** Un valor tomado directamente de las fuentes, con las citas de donde salió. */
 export interface SourcedValue {
@@ -18,8 +18,8 @@ export interface SourcedValue {
 /** Textos con los que un modelo "rellena" un campo vacío: se tratan como vacío. */
 const FILLER =
   /^(null|sin (datos|informaci[oó]n)( disponibles?)?|no (disponible|aplica|aplicable|se especifica|especificado|determinado|hay datos|se dispone de (datos|informaci[oó]n))|n\/?a|ninguno\(?a?\)?|no data( available)?|not (available|applicable|specified))\.?$/i;
-/** Referencias internas (K1, K2…) que el modelo deja dentro del texto: van en las citas, no en el valor. */
-const INLINE_REFS = /\s*[[(]\s*K\d+(?:\s*,\s*K\d+)*\s*[\])]/g;
+/** Referencias internas (K1, D3, R2…) que el modelo deja dentro del texto: van en las citas, no en el valor. */
+const INLINE_REFS = /\s*[[(]\s*[KDR]\d+(?:\s*[,;]\s*[KDR]\d+)*\s*[\])]/g;
 
 export interface DraftCleanup {
   /**
@@ -101,7 +101,9 @@ export class SectionSuggestionBuilder {
       fields: sub.fields.map((definition): SdsFieldDTO => {
         const base = { key: definition.key, label: definition.label, kind: definition.kind };
         const field = drafted.get(definition.key);
-        const value = normalize(field?.value, cleanup);
+        // Frases que minimizan el peligro ("inocuo", "puede ser peligroso"…): fuera, y quedan para el revisor.
+        const { value, removed } = ProhibitedPhraseValidator.strip(normalize(field?.value, cleanup));
+        if (removed.length) discarded.push({ key: definition.key, label: definition.label, value: removed.join('\n') });
         const { citations, invalid } = ProvenanceValidator.resolve(field?.sourceRefs ?? [], refs);
         invalid.forEach((ref) => invalidRefs.add(ref));
 

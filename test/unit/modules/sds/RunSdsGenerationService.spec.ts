@@ -7,6 +7,11 @@ import {
   SectionContextFragment,
   SyncSubstanceKnowledgeService,
 } from '@/modules/knowledge';
+import {
+  BuildProductDocumentContextService,
+  BuildReferenceContextService,
+  PrepareProductDocumentsService,
+} from '@/modules/reference';
 import { ListCurrentSourceDataService } from '@/modules/substance';
 import { CreateSdsDocumentDraftService, SdsDocumentContentDTO } from '@/modules/sds/sdsdocument';
 import { SdsSectionDraftingAgent } from '@/modules/sds/sdsgeneration/agent';
@@ -137,8 +142,25 @@ function setup(llm: LlmProvider) {
     ),
   } as unknown as CreateSdsDocumentDraftService & { execute: jest.Mock };
   const agent = new SdsSectionDraftingAgent(llm, new AgentSettings(config));
+  // Sin documentación de referencia cargada: la generación funciona igual que antes.
+  const references = {
+    execute: jest.fn(() => Promise.resolve(Result.success([]))),
+  } as unknown as BuildReferenceContextService;
   return {
-    service: new RunSdsGenerationService(jobs, sync, current, search, agent, createDraft),
+    service: new RunSdsGenerationService(
+      jobs,
+      sync,
+      current,
+      search,
+      agent,
+      createDraft,
+      references,
+      {
+        execute: jest.fn(() => Promise.resolve(Result.success({ documents: [], skipped: [] }))),
+      } as unknown as PrepareProductDocumentsService,
+      { execute: jest.fn(() => Promise.resolve(Result.success([]))) } as unknown as BuildProductDocumentContextService,
+      config,
+    ),
     jobs,
     sync,
     search,
@@ -183,8 +205,8 @@ describe('RunSdsGenerationService (flujo completo con LLM falso)', () => {
     }
     expect(content.isMixture).toBe(true);
     expect(content.components).toEqual([
-      { cas: CAS, name: 'Ethanol', percentage: 70 },
-      { cas: '7732-18-5', name: 'Water', percentage: 30 },
+      { cas: CAS, name: 'Ethanol', percentage: 70, concentration: '70 %' },
+      { cas: '7732-18-5', name: 'Water', percentage: 30, concentration: '30 %' },
     ]);
     expect(jobs.complete).toHaveBeenCalledWith(
       'job-1',

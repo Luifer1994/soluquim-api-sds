@@ -63,8 +63,28 @@ export const EnvSchema = z.object({
    * por token). Más alto = más contexto y más costo. Se reparte entre los componentes de la mezcla.
    */
   AI_CONTEXT_MAX_CHARS: z.coerce.number().int().min(2000).default(60000),
+  /**
+   * Caracteres máximos de DOCUMENTACIÓN DE REFERENCIA (SGA, GRE, procedimientos…) que recibe el agente en cada
+   * llamada, además del contexto por CAS. Más alto = más criterio y más costo.
+   */
+  AI_REFERENCE_CONTEXT_MAX_CHARS: z.coerce.number().int().min(0).default(16000),
+  /**
+   * Caracteres máximos de DOCUMENTOS DEL PRODUCTO (FDS de las materias primas y de análogos, datos del producto
+   * final, adjuntos a la generación) que recibe el agente por cada grupo de secciones.
+   */
+  AI_PRODUCT_DOCUMENTS_CONTEXT_MAX_CHARS: z.coerce.number().int().min(0).default(24000),
+  /**
+   * Redacción por etapas (orden del procedimiento TR-P-01, Anexo 1): primero clasificación, propiedades y
+   * toxicología; después emergencias, protección, eliminación y transporte, con lo ya redactado como contexto
+   * para que la ficha sea coherente. Tarda más (dos rondas de llamadas). false = todo en paralelo.
+   */
+  AI_STAGED_DRAFTING: z.stringbool().default(true),
   /** Llamadas simultáneas al LLM por proceso (una FDS hace ~6). */
   AI_LLM_MAX_CONCURRENCY: z.coerce.number().int().min(1).default(3),
+
+  // Documentación de referencia
+  /** Tamaño máximo de un documento subido (MB). */
+  REFERENCE_MAX_UPLOAD_MB: z.coerce.number().int().min(1).max(200).default(50),
 
   // Worker
   WORKER_CONCURRENCY: z.coerce.number().int().min(1).default(2),

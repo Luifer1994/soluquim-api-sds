@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { KnowledgeModule } from '@/modules/knowledge';
+import { ReferenceModule } from '@/modules/reference';
 import { SubstanceModule } from '@/modules/substance';
 import { SdsDocumentController } from '@/modules/sds/sdsdocument/controller';
 import { SdsDocumentRepository } from '@/modules/sds/sdsdocument/repository';
@@ -22,7 +23,7 @@ import { SdsMixtureController } from '@/modules/sds/sdsmixture/controller';
 import { LookupMixtureService } from '@/modules/sds/sdsmixture/service';
 
 @Module({
-  imports: [SubstanceModule, KnowledgeModule],
+  imports: [SubstanceModule, KnowledgeModule, ReferenceModule],
   controllers: [SdsMixtureController, SdsGenerationController, SdsDocumentController],
   providers: [
     // sdsmixture

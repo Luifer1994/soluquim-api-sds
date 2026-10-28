@@ -109,6 +109,13 @@ Por el gateway: `http://localhost:8080/api/sds/**`. En dev también directo: `ht
 | `POST` | `/api/sds/v1/generations` | **Genera el borrador de la FDS con IA** (asíncrono). Responde `202 { jobId }`. `503` si falta la clave de IA. |
 | `GET` | `/api/sds/v1/generations/{jobId}` | Estado del job: `QUEUED → EXTRACTING → DRAFTING → COMPLETED / PARTIAL / FAILED`, con `documentId`, tokens y costo. |
 | `GET` | `/api/sds/v1/documents/{id}` | La FDS: por cada sección, la sugerencia del agente **y** lo que encontró cada fuente. |
+| `GET` | `/api/sds/v1/reference-documents?scope=LIBRARY\|PRODUCT&ids=…` | Documentos subidos (biblioteca de referencia o documentos del producto), con su estado de vectorización. |
+| `GET` | `/api/sds/v1/reference-documents/options` | Extensiones admitidas, tamaño máximo y categorías (las de la biblioteca y las de un documento del producto). |
+| `POST` | `/api/sds/v1/reference-documents` | Sube un documento (multipart: `file`, `title`, `category`, `language`, `sdsSections`, `scope`, `cas`). `202`: se vectoriza en el worker. |
+| `PATCH` | `/api/sds/v1/reference-documents/{id}` | Cambia sus datos (título, categoría, idioma, secciones). |
+| `DELETE` | `/api/sds/v1/reference-documents/{id}` | Lo borra con sus fragmentos. |
+| `POST` | `/api/sds/v1/reference-documents/{id}/reindex` | Vuelve a extraer el texto y a vectorizarlo. |
+| `GET` | `/api/sds/v1/reference-documents/{id}/file` | Descarga el archivo original. |
 
 Swagger: http://localhost:8084/api/sds/docs (o http://localhost:8080/api/sds/docs por el gateway), y en el Swagger UI centralizado del gateway (`http://localhost:8080/swagger-ui.html`, entrada **sds**).
 
@@ -210,6 +217,11 @@ src/
 │   ├── substance/       # sustancia por CAS + cache por fuente (módulo compuesto)
 │   │   ├── substance/            # GET /substances/{cas}
 │   │   └── substancesourcedata/  # CollectSubstanceDataService (cache-aside), snapshots
+│   ├── reference/       # documentos subidos: biblioteca de referencia y documentos del producto
+│   │   ├── extractor/   #   texto por tipo de archivo (PDF, DOCX); registro extensible (Excel…)
+│   │   ├── chunker/     #   texto → fragmentos, detecta la sección de la FDS de cada uno (puro)
+│   │   ├── repository/  #   reference_documents + reference_chunks (búsqueda vectorial + CAS/ONU)
+│   │   └── service/     #   Upload, Index (worker), contexto de la biblioteca y de los documentos del producto
 │   ├── knowledge/       # base de conocimiento del agente (RAG sobre pgvector)
 │   │   ├── catalog/     #   las 16 secciones de la FDS + qué campo alimenta cuál
 │   │   ├── chunker/     #   datos de una fuente → fragmentos etiquetados (puro)
@@ -304,6 +316,42 @@ Reglas del agente (están en su prompt):
 - **No calcula la clasificación de una mezcla**: presenta la de cada componente y la deja "pendiente del cálculo SGA", que es la Fase 3.
 
 Si un grupo de secciones falla, la FDS sale `PARTIAL`: esas secciones quedan sin sugerencia, pero con sus datos de las fuentes.
+
+### Documentación de referencia y documentos del producto
+
+Dos tipos de documento subido, en las mismas tablas (`reference_documents`, `reference_chunks`) y por el mismo endpoint, distinguidos por `scope`:
+
+| | Biblioteca (`LIBRARY`) | Documentos del producto (`PRODUCT`) |
+|---|---|---|
+| Qué es | SGA (Libro Púrpura), GRE, Manual de Pruebas y Criterios, procedimientos (TR-P-01), páginas de interés… | FDS del proveedor de cada materia prima (con su `cas`), FDS de productos análogos, datos del producto final (certificado de análisis, ficha técnica, requisitos del cliente), otros. |
+| Dónde se sube | Web: FDS → pestaña "Documentación complementaria". | Web: formulario "Nueva FDS" → "Documentos del producto": una o varias FDS por componente y uno o varios archivos por tipo. |
+| Quién lo usa | **Toda** generación. | Solo la generación que lo adjunta (`documentIds` en `POST /generations`). |
+| En la FDS se cita como | `R1, R2…` → fuente `REFERENCE` | `D1, D2…` → fuente `PRODUCT_DOCUMENT` |
+
+- **Indexación**: al subir, el worker extrae el texto (`DocumentTextExtractorRegistry`: hoy PDF y DOCX; otro formato = otro extractor registrado), lo parte en fragmentos y los vectoriza. En una FDS, cada fragmento queda etiquetado con su sección (1–16) leyendo los encabezados ("SECCIÓN 9", "9. Propiedades…").
+- **Duplicados**: el mismo archivo en la biblioteca da `409`. Como documento del producto se reutiliza el existente (mismo hash y CAS).
+- **Búsqueda**: semántica y, además, por identificadores (CAS, número ONU) para no perder la ficha exacta de la GRE o la entrada de la Lista de Mercancías Peligrosas.
+- **Documentos del producto en la generación**: si alguno no está listo, el job lo procesa antes de redactar (hasta 180 s). Para cada grupo de secciones toma primero los fragmentos de esas secciones de cada documento y reparte el presupuesto por turnos entre documentos. Orden: datos del producto final → FDS de proveedores → análogos.
+
+Reglas del agente para estos documentos (prompt v11, reglas 15–23):
+- Los datos de la FDS de un proveedor valen como datos de **ese componente** y se atribuyen a él por su nombre.
+- Una FDS análoga **solo** sirve de modelo de redacción de las medidas (primeros auxilios, incendio, derrames, manipulación, protección, eliminación). Nunca para las secciones 2, 9, 11 o 12 ni para el grupo de embalaje: su composición casi nunca es la misma.
+- Los datos del producto final tienen prioridad en la sección 9.
+- Si un documento contradice a una fuente oficial (ECHA, Lista de Mercancías Peligrosas), prima la oficial y queda en `conflicts`.
+- **Mezclas y concentraciones** (`MixtureConcentrationProfile`): el agente recibe por componente cada clase de peligro, el límite que le aplica (el específico de ECHA o el genérico del SGA) y si su % lo alcanza. En Colombia se usan los límites inferiores (p. ej. Repr. 2 ≥ 0,1 %).
+- Sección 9 (`MixturePropertyFilter`): los valores de un componente minoritario (< 50 %) se descartan si hay uno mayoritario.
+
+**Redacción por etapas** (`AI_STAGED_DRAFTING`, TR-P-01 Anexo 1): primero clasificación, fisicoquímica y toxicología; después emergencias, higiene industrial, residuos y transporte, con lo ya redactado como `<prior_sections>` para que la ficha sea coherente.
+
+**País de destino** (`country/CountryRegulatoryProfile`): con `destinationCountry: "CO"`, el agente aplica la revisión del SGA, el orden de los límites de exposición (ACGIH → NIOSH → OSHA) y la normativa de residuos. La sección 15 lista la normativa nacional (Decreto 1496/2018, Res. 0773/2021), citada como `COUNTRY_PROFILE`.
+
+| Variable (`soluquim-api-sds/.env`) | Qué es | Por defecto |
+|---|---|---|
+| `AI_REFERENCE_CONTEXT_MAX_CHARS` | Texto de la biblioteca por llamada al agente | `16000` |
+| `AI_PRODUCT_DOCUMENTS_CONTEXT_MAX_CHARS` | Texto de documentos del producto por grupo de secciones | `24000` |
+| `AI_STAGED_DRAFTING` | Redacción por etapas (`false` = todo en paralelo) | `true` |
+| `AI_LLM_MAX_CONCURRENCY` | Llamadas simultáneas al LLM por proceso | `3` |
+| `REFERENCE_MAX_UPLOAD_MB` | Tamaño máximo de un archivo subido | `50` |
 
 ### Elegir o cambiar de modelo con datos
 
