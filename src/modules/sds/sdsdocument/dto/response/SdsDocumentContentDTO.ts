@@ -107,6 +107,13 @@ export interface SdsDocumentContentDTO {
     productDocumentFragments?: number;
     /** Redactada por etapas (datos y clasificación primero, medidas después). */
     staged?: boolean;
+    /** Revisión de calidad (si está activa): agente, versión, problemas que dejó como conflictos y su uso. */
+    qualityReview?: {
+      agent: string;
+      promptVersion: string;
+      issues: number;
+      usage: { promptTokens: number; completionTokens: number; costUsd?: number };
+    };
     errors: string[];
   };
 }

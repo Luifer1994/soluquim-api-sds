@@ -81,6 +81,27 @@ export const EnvSchema = z.object({
   AI_STAGED_DRAFTING: z.stringbool().default(true),
   /** Llamadas simultáneas al LLM por proceso (una FDS hace ~6). */
   AI_LLM_MAX_CONCURRENCY: z.coerce.number().int().min(1).default(3),
+  /**
+   * Agentes con herramientas (shared/ai/agent/ToolCallingAgent): vueltas máximas modelo → herramientas antes de
+   * cortar (evita ciclos y costos sin fin).
+   */
+  AI_AGENT_MAX_STEPS: z.coerce.number().int().min(1).max(50).default(8),
+  /** Niveles máximos de subagentes: un orquestador (0) delega en subagentes (1), que pueden delegar en otros (2). */
+  AI_AGENT_MAX_DEPTH: z.coerce.number().int().min(0).max(5).default(2),
+  /** Tiempo máximo de una herramienta (ms); un subagente es una herramienta, así que también lo limita. */
+  AI_AGENT_TOOL_TIMEOUT_MS: z.coerce.number().int().min(1000).default(240_000),
+  /**
+   * Revisión de calidad de cada FDS al terminar de redactarla: un líder de calidad (orquestador) busca contradicciones
+   * entre secciones y consulta a los especialistas (subagentes con la base de conocimiento). Lo que confirma queda
+   * como conflicto de la sección para el revisor; no cambia la ficha. Unos segundos y centavos más por FDS.
+   */
+  AI_SDS_QUALITY_REVIEW: z.stringbool().default(true),
+  /**
+   * 2.ª pasada de campos vacíos con búsqueda dirigida: el especialista busca en la base de conocimiento el dato puntual
+   * de cada campo vacío (en vez de releer los mismos fragmentos). Más llamadas por grupo con huecos; si falla, se usa
+   * la revisión normal.
+   */
+  AI_SDS_AGENTIC_GAP_FILL: z.stringbool().default(true),
 
   // Documentación de referencia
   /** Tamaño máximo de un documento subido (MB). */

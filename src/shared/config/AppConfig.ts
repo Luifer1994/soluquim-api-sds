@@ -16,6 +16,12 @@ export interface AiConfig {
   /** Modelo por agente (nombre del agente → modelo). Si no está, LLM_MODEL. */
   agentModels: ReadonlyMap<string, string>;
   embedding: { model: string; dimensions: number };
+  /** Límites de los agentes con herramientas y subagentes. */
+  agents: { maxSteps: number; maxDepth: number; toolTimeoutMs: number };
+  /** Revisión de calidad (coherencia entre secciones) de cada FDS redactada. */
+  sdsQualityReview: boolean;
+  /** 2.ª pasada de campos vacíos con búsqueda dirigida en la base de conocimiento. */
+  sdsAgenticGapFill: boolean;
 }
 
 export interface MessagingConfig {
@@ -82,6 +88,13 @@ export class AppConfig {
           .filter((pair): pair is [string, string] => pair.length === 2 && Boolean(pair[0]) && Boolean(pair[1])),
       ),
       embedding: { model: env.AI_EMBEDDING_MODEL, dimensions: env.AI_EMBEDDING_DIMENSIONS },
+      agents: {
+        maxSteps: env.AI_AGENT_MAX_STEPS,
+        maxDepth: env.AI_AGENT_MAX_DEPTH,
+        toolTimeoutMs: env.AI_AGENT_TOOL_TIMEOUT_MS,
+      },
+      sdsQualityReview: env.AI_SDS_QUALITY_REVIEW,
+      sdsAgenticGapFill: env.AI_SDS_AGENTIC_GAP_FILL,
     };
     this.reference = { maxUploadBytes: env.REFERENCE_MAX_UPLOAD_MB * 1024 * 1024 };
     this.messaging = {

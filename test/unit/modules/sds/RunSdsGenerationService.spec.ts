@@ -14,8 +14,14 @@ import {
 } from '@/modules/reference';
 import { ListCurrentSourceDataService } from '@/modules/substance';
 import { CreateSdsDocumentDraftService, SdsDocumentContentDTO } from '@/modules/sds/sdsdocument';
-import { SdsSectionDraftingAgent } from '@/modules/sds/sdsgeneration/agent';
+import {
+  SdsGapFillingAgent,
+  SdsQualityReviewAgent,
+  SdsSectionDraftingAgent,
+  SdsSpecialistDraftingAgents,
+} from '@/modules/sds/sdsgeneration/agent';
 import { SdsGenerationJobRepository } from '@/modules/sds/sdsgeneration/repository';
+import { CitableRefs, SdsSourceSearchToolkit } from '@/modules/sds/sdsgeneration/tool';
 import { RunSdsGenerationService } from '@/modules/sds/sdsgeneration/service';
 
 const CAS = '64-17-5';
@@ -73,9 +79,25 @@ function fakeLlm(failOn?: string): LlmProvider & { requests: LlmRequest[] } {
   };
 }
 
-function setup(llm: LlmProvider) {
+/** Revisión de calidad falsa (el orquestador real se prueba aparte): devuelve lo indicado o falla. */
+const qualityReviewStub = (run: jest.Mock = jest.fn()) =>
+  ({ name: 'sds-quality-review', promptVersion: 'sds-quality-review.v1', run }) as unknown as SdsQualityReviewAgent & {
+    run: jest.Mock;
+  };
+
+function setup(
+  llm: LlmProvider,
+  options: { env?: Record<string, string>; qualityReview?: SdsQualityReviewAgent; gapFiller?: SdsGapFillingAgent } = {},
+) {
   const config = new AppConfig(
-    parseEnv({ DATABASE_URL: 'postgresql://u:p@h:5432/d', RABBITMQ_URL: 'amqp://u:p@h:5672' }),
+    parseEnv({
+      DATABASE_URL: 'postgresql://u:p@h:5432/d',
+      RABBITMQ_URL: 'amqp://u:p@h:5672',
+      // El flujo base (sin revisión de calidad ni búsqueda dirigida); cada prueba enciende lo que mide.
+      AI_SDS_QUALITY_REVIEW: 'false',
+      AI_SDS_AGENTIC_GAP_FILL: 'false',
+      ...options.env,
+    }),
   );
   const job = {
     id: 'job-1',
@@ -142,6 +164,7 @@ function setup(llm: LlmProvider) {
     ),
   } as unknown as CreateSdsDocumentDraftService & { execute: jest.Mock };
   const agent = new SdsSectionDraftingAgent(llm, new AgentSettings(config));
+  const sourceSearch = { forScope: jest.fn(() => []) } as unknown as SdsSourceSearchToolkit & { forScope: jest.Mock };
   // Sin documentación de referencia cargada: la generación funciona igual que antes.
   const references = {
     execute: jest.fn(() => Promise.resolve(Result.success([]))),
@@ -160,7 +183,12 @@ function setup(llm: LlmProvider) {
       } as unknown as PrepareProductDocumentsService,
       { execute: jest.fn(() => Promise.resolve(Result.success([]))) } as unknown as BuildProductDocumentContextService,
       config,
+      options.qualityReview ?? qualityReviewStub(),
+      new SdsSpecialistDraftingAgents(llm, new AgentSettings(config), agent),
+      options.gapFiller ?? ({ run: jest.fn() } as unknown as SdsGapFillingAgent),
+      sourceSearch,
     ),
+    sourceSearch,
     jobs,
     sync,
     search,
@@ -294,5 +322,133 @@ describe('RunSdsGenerationService (flujo completo con LLM falso)', () => {
 
     await service.execute({ jobId: 'job-1' });
     expect(llm.requests).toHaveLength(0);
+  });
+
+  describe('revisión de calidad (AI_SDS_QUALITY_REVIEW)', () => {
+    it('por defecto, la revisión de calidad y la búsqueda dirigida están activas', () => {
+      const config = new AppConfig(
+        parseEnv({ DATABASE_URL: 'postgresql://u:p@h:5432/d', RABBITMQ_URL: 'amqp://u:p@h:5672' }),
+      );
+      expect(config.ai.sdsQualityReview).toBe(true);
+      expect(config.ai.sdsAgenticGapFill).toBe(true);
+    });
+
+    it('apagada: no corre ni cambia nada', async () => {
+      const review = qualityReviewStub();
+      const { service, createDraft } = setup(fakeLlm(), { qualityReview: review });
+      await service.execute({ jobId: 'job-1' });
+
+      expect(review.run).not.toHaveBeenCalled();
+      expect(contentOf(createDraft).generation.qualityReview).toBeUndefined();
+    });
+
+    it('activa: lo confirmado queda como conflicto de su sección y su uso suma al total', async () => {
+      const review = qualityReviewStub(
+        jest.fn().mockResolvedValue({
+          output: {
+            issues: [
+              {
+                section: 9,
+                field: 'Punto de inflamación',
+                problem: 'Contradice la clasificación de líquido inflamable de la sección 2',
+                suggestion: '13 °C',
+                relatedSections: [2, 14],
+                severity: 'high',
+              },
+            ],
+          },
+          usage: { promptTokens: 1000, completionTokens: 200, cost: 0.5 },
+          trace: [],
+        }),
+      );
+      const { service, createDraft } = setup(fakeLlm(), {
+        env: { AI_SDS_QUALITY_REVIEW: 'true' },
+        qualityReview: review,
+      });
+      await service.execute({ jobId: 'job-1' });
+
+      const content = contentOf(createDraft);
+      expect(review.run).toHaveBeenCalledWith(
+        expect.objectContaining({ language: 'es', productKind: 'mixture', suggestions: expect.any(Map) }),
+      );
+      expect(content.sections[8].suggestion?.conflicts).toContainEqual({
+        field: 'Punto de inflamación',
+        chosen: '',
+        alternatives: ['13 °C'],
+        reason:
+          'Revisión de coherencia (prioridad alta): Contradice la clasificación de líquido inflamable de la sección 2 ' +
+          '(ver secciones 2, 14)',
+      });
+      expect(content.generation.qualityReview).toMatchObject({
+        issues: 1,
+        usage: { promptTokens: 1000, costUsd: 0.5 },
+      });
+      // 12 llamadas de redacción (100 + 50 tokens c/u) + la revisión.
+      expect(content.generation.usage.promptTokens).toBe(12 * 100 + 1000);
+    });
+
+    it('si la revisión falla, la FDS sale igual (sin conflictos nuevos ni error en el job)', async () => {
+      const review = qualityReviewStub(jest.fn().mockRejectedValue(new Error('modelo caído')));
+      const { service, jobs, createDraft } = setup(fakeLlm(), {
+        env: { AI_SDS_QUALITY_REVIEW: 'true' },
+        qualityReview: review,
+      });
+      const result = await service.execute({ jobId: 'job-1' });
+
+      expect(result.data).toEqual({ documentId: 'doc-1' });
+      expect(contentOf(createDraft).generation.qualityReview).toBeUndefined();
+      expect(jobs.fail).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('especialistas como subagentes y búsqueda dirigida', () => {
+    it('cada grupo lo redacta su especialista, con modelo propio si se configura (AI_AGENT_MODELS)', async () => {
+      const llm = fakeLlm();
+      const { service } = setup(llm, { env: { AI_AGENT_MODELS: 'sds-drafting-toxicology=toxi/model' } });
+      await service.execute({ jobId: 'job-1' });
+
+      const modelBySections = new Map(
+        llm.requests.map((request) => [
+          [...request.messages.at(-1)!.content.matchAll(/^SECCIÓN (\d+)\. /gm)].map((m) => Number(m[1])).join(','),
+          request.model,
+        ]),
+      );
+      expect(modelBySections.get('11,12')).toBe('toxi/model');
+      expect(modelBySections.get('9,10')).toBe('google/gemini-2.5-flash');
+      expect(llm.requests[0].messages[0].content).toContain('ESPECIALIDAD');
+    });
+
+    it('con AI_SDS_AGENTIC_GAP_FILL, la 2.ª pasada la hace el agente de búsqueda (con las referencias del grupo)', async () => {
+      const llm = fakeLlm();
+      const gapFiller = {
+        run: jest.fn().mockResolvedValue({ output: { sections: [] }, usage: { promptTokens: 7, completionTokens: 3 } }),
+      } as unknown as SdsGapFillingAgent & { run: jest.Mock };
+      const { service, createDraft, sourceSearch } = setup(llm, {
+        env: { AI_SDS_AGENTIC_GAP_FILL: 'true' },
+        gapFiller,
+      });
+      await service.execute({ jobId: 'job-1' });
+
+      expect(llm.requests).toHaveLength(6); // solo la 1.ª pasada de cada especialista
+      expect(gapFiller.run).toHaveBeenCalledTimes(6);
+      const [{ drafting }] = gapFiller.run.mock.calls[0] as [{ drafting: { review: boolean } }];
+      expect(drafting.review).toBe(true);
+      // Las búsquedas del grupo registran sus hallazgos en el mismo mapa de citas (K… del contexto inicial).
+      const [scope] = sourceSearch.forScope.mock.calls[0] as [{ casList: string[]; refs: CitableRefs }];
+      expect(scope.casList).toContain(CAS);
+      expect(scope.refs.map.has('K1')).toBe(true);
+      expect(contentOf(createDraft).generation.usage.promptTokens).toBe(6 * 100 + 6 * 7);
+    });
+
+    it('si la búsqueda dirigida falla, se revisa con los fragmentos como siempre', async () => {
+      const llm = fakeLlm();
+      const gapFiller = {
+        run: jest.fn().mockRejectedValue(new Error('sin herramientas')),
+      } as unknown as SdsGapFillingAgent;
+      const { service } = setup(llm, { env: { AI_SDS_AGENTIC_GAP_FILL: 'true' }, gapFiller });
+      await service.execute({ jobId: 'job-1' });
+
+      expect(llm.requests).toHaveLength(12); // 1.ª pasada + revisión normal
+    });
   });
 });
