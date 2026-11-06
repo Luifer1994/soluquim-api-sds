@@ -10,8 +10,15 @@ import {
   ListSdsDocumentsService,
   UpdateSdsDocumentFieldService,
 } from '@/modules/sds/sdsdocument/service';
-import { SdsSectionDraftingAgent } from '@/modules/sds/sdsgeneration/agent';
+import {
+  SdsGapFillingAgent,
+  SdsQualityReviewAgent,
+  SdsSectionDraftingAgent,
+  SdsSpecialistDraftingAgents,
+  SdsSpecialistReviewAgent,
+} from '@/modules/sds/sdsgeneration/agent';
 import { SdsGenerationController } from '@/modules/sds/sdsgeneration/controller';
+import { SdsSourceSearchToolkit } from '@/modules/sds/sdsgeneration/tool';
 import { SdsGenerationRequestedHandler } from '@/modules/sds/sdsgeneration/messaging';
 import { SdsGenerationJobRepository } from '@/modules/sds/sdsgeneration/repository';
 import {
@@ -31,6 +38,11 @@ import { LookupMixtureService } from '@/modules/sds/sdsmixture/service';
     // sdsgeneration
     SdsGenerationJobRepository,
     SdsSectionDraftingAgent,
+    SdsSpecialistDraftingAgents,
+    SdsGapFillingAgent,
+    SdsSourceSearchToolkit,
+    SdsSpecialistReviewAgent,
+    SdsQualityReviewAgent,
     RequestSdsGenerationService,
     RunSdsGenerationService,
     GetSdsGenerationJobService,

@@ -9,3 +9,4 @@ export * from '@/modules/sds/sdsgeneration/assembler/SourceFallbackFiller';
 export * from '@/modules/sds/sdsgeneration/assembler/ProductReferenceQueryBuilder';
 export * from '@/modules/sds/sdsgeneration/assembler/MixtureConcentrationProfile';
 export * from '@/modules/sds/sdsgeneration/assembler/MixturePropertyFilter';
+export * from '@/modules/sds/sdsgeneration/assembler/QualityIssueApplier';

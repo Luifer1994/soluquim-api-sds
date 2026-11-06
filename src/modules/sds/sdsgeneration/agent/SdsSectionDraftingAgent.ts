@@ -51,7 +51,8 @@ export interface SdsSectionDraftingInput {
  */
 @Injectable()
 export class SdsSectionDraftingAgent extends BaseAgent<SdsSectionDraftingInput, SdsSectionDraftBatch> {
-  readonly name = 'sds-section-drafting';
+  static readonly AGENT_NAME = 'sds-section-drafting';
+  readonly name: string = SdsSectionDraftingAgent.AGENT_NAME;
   readonly promptVersion = PROMPT_VERSION;
   protected readonly outputSchema = SdsSectionDraftBatchSchema;
 

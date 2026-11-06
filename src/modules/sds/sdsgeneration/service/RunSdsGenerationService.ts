@@ -30,7 +30,13 @@ import {
   PromptProductDocument,
   PromptReference,
   SdsSectionDraft,
+  REVIEWED_SECTIONS,
+  SdsGapFillingAgent,
+  SdsQualityReviewAgent,
+  SdsSectionDraftBatch,
   SdsSectionDraftingAgent,
+  SdsSectionDraftingInput,
+  SdsSpecialistDraftingAgents,
   SdsSpecialistProfile,
   SdsSpecialistProfiles,
 } from '@/modules/sds/sdsgeneration/agent';
@@ -44,12 +50,14 @@ import {
   MixturePropertyFilter,
   ProductReferenceQuery,
   ProductReferenceQueryBuilder,
+  QualityIssueApplier,
   RegulatorySectionBuilder,
   SectionEvidenceCollector,
   SectionSuggestionBuilder,
   SourceFallbackFiller,
 } from '@/modules/sds/sdsgeneration/assembler';
 import { CountryRegulatoryProfile, CountryRegulatoryProfiles } from '@/modules/sds/sdsgeneration/country';
+import { CitableRefs, SdsSourceSearchToolkit } from '@/modules/sds/sdsgeneration/tool';
 import { GenerateSdsRequestDTO } from '@/modules/sds/sdsgeneration/dto/request';
 import { MixtureConcentration } from '@/modules/sds/sdsmixture/concentration';
 import { SdsGenerationJobRepository } from '@/modules/sds/sdsgeneration/repository';
@@ -120,6 +128,9 @@ interface DraftContext {
  *     que reciben lo ya redactado para ser coherentes con ello.
  *  4. Armado de las 16 secciones con la PLANTILLA: 1, 15 y 16 sin IA (solicitud, fuentes y sistema); 2 a
  *     14 con los campos que llenó el agente (citas verificadas, valores sin cita descartados) + lo que trajo cada fuente.
+ *  5. Revisión de calidad (opcional, AI_SDS_QUALITY_REVIEW): un líder de calidad (orquestador) busca contradicciones
+ *     entre secciones y consulta a los especialistas (subagentes con la base de conocimiento); lo confirmado queda
+ *     como conflicto de su sección para el revisor. No cambia la ficha y, si falla, la FDS sale igual.
  * Un grupo que falla no tumba la FDS: esas secciones quedan sin sugerencia y el job termina PARTIAL.
  */
 @Injectable()
@@ -135,6 +146,10 @@ export class RunSdsGenerationService extends BaseService<{ jobId: string }, { do
     private readonly prepareDocuments: PrepareProductDocumentsService,
     private readonly buildProductDocuments: BuildProductDocumentContextService,
     private readonly config: AppConfig,
+    private readonly qualityReview: SdsQualityReviewAgent,
+    private readonly specialists: SdsSpecialistDraftingAgents,
+    private readonly gapFiller: SdsGapFillingAgent,
+    private readonly sourceSearch: SdsSourceSearchToolkit,
   ) {
     super();
   }
@@ -253,12 +268,16 @@ export class RunSdsGenerationService extends BaseService<{ jobId: string }, { do
           sections: suggestions,
         }),
       );
+      // 5. Revisión de calidad (opcional): lo que confirma queda como conflicto de su sección.
+      const review = await this.reviewQuality(jobId, suggestions, draftContext);
+      if (review) for (const [number, section] of review.sections) suggestions.set(number, section);
+
       const errors = [...indexErrors, ...documentErrors, ...groups.flatMap((g) => (g.error ? [g.error] : []))];
-      const usage = groups.reduce(
-        (acc, g) => ({
-          promptTokens: acc.promptTokens + g.usage.promptTokens,
-          completionTokens: acc.completionTokens + g.usage.completionTokens,
-          cost: (acc.cost ?? 0) + (g.usage.cost ?? 0),
+      const usage = [...groups.map((g) => g.usage), ...(review ? [review.usage] : [])].reduce(
+        (acc, item) => ({
+          promptTokens: acc.promptTokens + item.promptTokens,
+          completionTokens: acc.completionTokens + item.completionTokens,
+          cost: (acc.cost ?? 0) + (item.cost ?? 0),
         }),
         { promptTokens: 0, completionTokens: 0, cost: 0 } as LlmUsage,
       );
@@ -291,6 +310,18 @@ export class RunSdsGenerationService extends BaseService<{ jobId: string }, { do
           referenceFragments: groups.reduce((sum, g) => sum + g.references, 0),
           productDocumentFragments: groups.reduce((sum, g) => sum + g.productDocuments, 0),
           staged: stageTwo.length > 0,
+          ...(review && {
+            qualityReview: {
+              agent: this.qualityReview.name,
+              promptVersion: this.qualityReview.promptVersion,
+              issues: review.issues,
+              usage: {
+                promptTokens: review.usage.promptTokens,
+                completionTokens: review.usage.completionTokens,
+                costUsd: review.usage.cost || undefined,
+              },
+            },
+          }),
           errors,
         },
       };
@@ -341,6 +372,91 @@ export class RunSdsGenerationService extends BaseService<{ jobId: string }, { do
       const message = error instanceof Error ? error.message : String(error);
       await this.jobs.fail(jobId, message);
       return this.handleException('RunSdsGeneration', error);
+    }
+  }
+
+  /**
+   * 2.ª pasada sobre los campos vacíos de un grupo. Con AI_SDS_AGENTIC_GAP_FILL el especialista BUSCA el dato puntual
+   * de cada campo ({@link SdsGapFillingAgent}); si eso falla, o sin la bandera, relee los fragmentos propios de estas
+   * secciones (como siempre). Devuelve null si no hay con qué revisar o si la revisión falló (queda la 1.ª pasada).
+   */
+  private async fillGaps(
+    specialist: SdsSectionDraftingAgent,
+    input: SdsSectionDraftingInput,
+    scope: { casList: string[]; refs: Map<string, KnowledgeSearchHit>; context: DraftContext },
+    label: string,
+  ): Promise<{ output: SdsSectionDraftBatch; usage: LlmUsage } | null> {
+    if (this.config.ai.sdsAgenticGapFill) {
+      try {
+        const tools = this.sourceSearch.forScope({
+          sections: input.sections.map((section) => section.number),
+          casList: scope.casList,
+          language: input.language,
+          referenceQuery: scope.context.referenceQuery,
+          productDocuments: scope.context.productDocuments,
+          refs: new CitableRefs(scope.refs),
+        });
+        const knownRefs = scope.refs.size;
+        const result = await this.gapFiller.run({ drafting: input, tools });
+        const searches = result.trace?.filter((entry) => entry.kind === 'tool') ?? [];
+        this.logger.log(
+          `${label}: búsqueda dirigida — ${searches.length} búsqueda(s) ` +
+            `(${searches.filter((entry) => !entry.ok).length} con error), ` +
+            `${scope.refs.size - knownRefs} fragmento(s) nuevo(s) citables`,
+        );
+        return result;
+      } catch (error) {
+        this.logger.warn(`${label}: la búsqueda dirigida falló; se revisa con los fragmentos: ${String(error)}`);
+      }
+    }
+    if (!input.knowledge.length) return null;
+    try {
+      return await specialist.run(input);
+    } catch (error) {
+      this.logger.warn(`${label}: la revisión de campos vacíos falló: ${String(error)}`);
+      return null;
+    }
+  }
+
+  /**
+   * Revisión de calidad de la ficha ya armada (AI_SDS_QUALITY_REVIEW): el líder de calidad busca contradicciones entre
+   * secciones y consulta a los especialistas; lo confirmado vuelve como conflictos de cada sección. Es opcional y no
+   * bloquea: si falla, la FDS sale igual (queda en el log).
+   */
+  private async reviewQuality(
+    jobId: string,
+    suggestions: ReadonlyMap<number, SdsSectionSuggestionDTO>,
+    context: DraftContext,
+  ): Promise<{ sections: Map<number, SdsSectionSuggestionDTO>; issues: number; usage: LlmUsage } | null> {
+    const { request, components, productKind, country } = context;
+    if (!this.config.ai.sdsQualityReview) return null;
+    await this.jobs.progress(jobId, SdsGenerationStatus.DRAFTING, { step: 'quality-review' });
+    const startedAt = Date.now();
+    try {
+      const result = await this.qualityReview.run({
+        language: request.language,
+        productKind,
+        country: country?.name,
+        components: components.map((c) => ({ cas: c.cas, name: c.name, concentration: c.concentration })),
+        suggestions,
+        // Solo verifican: buscan en las mismas fuentes, sin registrar citas.
+        tools: this.sourceSearch.forScope({
+          sections: REVIEWED_SECTIONS,
+          casList: components.map((c) => c.cas),
+          language: request.language,
+          referenceQuery: context.referenceQuery,
+          productDocuments: context.productDocuments,
+        }),
+      });
+      const issues = result.output.issues;
+      this.logger.log(
+        `Revisión de calidad: ${issues.length} problema(s), ${result.trace?.length ?? 0} pasos, ` +
+          `${result.usage.promptTokens}+${result.usage.completionTokens} tokens (${Date.now() - startedAt} ms)`,
+      );
+      return { sections: QualityIssueApplier.apply(suggestions, issues), issues: issues.length, usage: result.usage };
+    } catch (error) {
+      this.logger.warn(`La revisión de calidad falló; la FDS sigue sin ella: ${String(error)}`);
+      return null;
     }
   }
 
@@ -463,14 +579,14 @@ export class RunSdsGenerationService extends BaseService<{ jobId: string }, { do
         (fragment, i) =>
           [
             `D${i + 1}`,
-            RunSdsGenerationService.citable(fragment, PRODUCT_DOCUMENT_CITATION_SOURCE, sections, request.language),
+            CitableRefs.fromDocument(fragment, PRODUCT_DOCUMENT_CITATION_SOURCE, sections, request.language),
           ] as const,
       ),
       ...referenceFragments.map(
         (fragment, i) =>
           [
             `R${i + 1}`,
-            RunSdsGenerationService.citable(fragment, REFERENCE_CITATION_SOURCE, sections, fragment.language),
+            CitableRefs.fromDocument(fragment, REFERENCE_CITATION_SOURCE, sections, fragment.language),
           ] as const,
       ),
     ]);
@@ -526,18 +642,27 @@ export class RunSdsGenerationService extends BaseService<{ jobId: string }, { do
         }),
       );
 
-    // 1.ª pasada: todos los campos de las secciones del grupo.
-    const first = await this.agent.run({ ...input, sections: templates, knowledge });
+    // 1.ª pasada: todos los campos de las secciones del grupo, con el especialista (subagente) de esas secciones.
+    const specialist = this.specialists.forSections(sections);
+    const first = await specialist.run({ ...input, sections: templates, knowledge });
     const suggestions = toSuggestions(first.output.sections, templates);
     const usage = { ...first.usage };
 
     // 2.ª pasada, solo si quedaron campos vacíos: se le vuelven a mostrar ESOS campos con los fragmentos
-    // propios de estas secciones. Recupera datos que el modelo pasó por alto; si falla, queda la 1.ª.
+    // propios de estas secciones (o, con búsqueda dirigida, el especialista busca cada dato). Recupera datos que el
+    // modelo pasó por alto; si falla, queda la 1.ª.
     const pending = GapReviewPlanner.pending(templates, suggestions);
     const focused = knowledge.filter((fragment) => fragment.relevance !== 'related');
-    if (pending.length && focused.length) {
+    const review = pending.length
+      ? await this.fillGaps(
+          specialist,
+          { ...input, sections: pending, knowledge: focused, review: true },
+          { casList, refs, context },
+          label,
+        )
+      : null;
+    if (review) {
       try {
-        const review = await this.agent.run({ ...input, sections: pending, knowledge: focused, review: true });
         for (const [number, reviewed] of toSuggestions(review.output.sections, pending)) {
           const base =
             suggestions.get(number) ??
@@ -566,32 +691,6 @@ export class RunSdsGenerationService extends BaseService<{ jobId: string }, { do
       fragments: fragments.length,
       references: referenceFragments.length,
       productDocuments: documentFragments.length,
-    };
-  }
-
-  /** Un fragmento de un documento subido, citable igual que el conocimiento por CAS (D… o R…). */
-  private static citable(
-    fragment: {
-      id: string;
-      citationTitle: string;
-      content: string;
-      similarity: number | null;
-      document?: ProductDocument;
-    },
-    source: string,
-    sections: number[],
-    language: string,
-  ): KnowledgeSearchHit {
-    return {
-      id: fragment.id,
-      cas: fragment.document?.cas ?? null,
-      source,
-      title: fragment.citationTitle,
-      content: fragment.content,
-      sdsSections: sections,
-      sourceUrl: null,
-      language,
-      similarity: fragment.similarity,
     };
   }
 

@@ -9,6 +9,7 @@ import {
   SearchKnowledgeService,
   SyncSubstanceKnowledgeService,
 } from '@/modules/knowledge/service';
+import { SearchKnowledgeTool } from '@/modules/knowledge/tool';
 
 /** Base de conocimiento del agente: fragmentos vectorizados (pgvector) de los datos de las fuentes. */
 @Module({
@@ -21,12 +22,14 @@ import {
     SearchKnowledgeService,
     SyncSubstanceKnowledgeService,
     KnowledgeIndexTaskHandler,
+    SearchKnowledgeTool,
   ],
   exports: [
     BuildSectionContextService,
     IndexSubstanceKnowledgeService,
     SearchKnowledgeService,
     SyncSubstanceKnowledgeService,
+    SearchKnowledgeTool,
   ],
 })
 export class KnowledgeModule {}

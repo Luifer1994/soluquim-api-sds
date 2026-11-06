@@ -232,8 +232,9 @@ src/
 │       ├── sdsgeneration/  #   job asíncrono + agente redactor (agent/, prompt/, validator/, assembler/)
 │       └── sdsdocument/    #   el borrador de la FDS guardado
 └── shared/
-    ├── ai/              # IA genérica: contract/ (LlmProvider, EmbeddingProvider), provider/openrouter/,
-    │                    #   factory/ (AiProviderFactory), agent/ (BaseAgent, AgentSettings)
+    ├── ai/              # IA genérica: contract/ (LlmProvider, EmbeddingProvider, herramientas), provider/openrouter/,
+    │                    #   factory/ (AiProviderFactory), agent/ (BaseAgent, ToolCallingAgent, OrchestratorAgent,
+    │                    #   AgentRunContext, AgentSettings) y agent/tool/ (AgentTool, ToolBox, SubAgentTool)
     ├── annotation/      # @RequirePermission
     ├── base/            # BaseService
     ├── config/          # env.schema (Zod) + AppConfig tipado
@@ -316,6 +317,36 @@ Reglas del agente (están en su prompt):
 - **No calcula la clasificación de una mezcla**: presenta la de cada componente y la deja "pendiente del cálculo SGA", que es la Fase 3.
 
 Si un grupo de secciones falla, la FDS sale `PARTIAL`: esas secciones quedan sin sugerencia, pero con sus datos de las fuentes.
+
+### Agentes, herramientas y subagentes (`shared/ai/agent`)
+
+Tres tipos de agente, todos con el mismo contrato (`RunnableAgent.run(input, context?)`), así cualquiera puede ser subagente de otro:
+
+| Agente | Patrón | Cuándo usarlo | Ejemplo |
+|---|---|---|---|
+| `BaseAgent` | Template Method | Una sola llamada con todo el contexto y salida estructurada (Zod). Lo más barato y predecible. | `SdsSectionDraftingAgent` |
+| `ToolCallingAgent` | Template Method | El agente necesita **buscar o consultar** por su cuenta (herramientas) antes de responder. | `SdsSpecialistReviewAgent` (usa el RAG) |
+| `OrchestratorAgent` | Template Method sobre el anterior | Una tarea abierta que se reparte entre **especialistas**: delega en subagentes y une sus resultados. | `SdsQualityReviewAgent` |
+
+Piezas:
+- **`AgentTool`** (Command): nombre, descripción (lo que lee el modelo), schema Zod de los argumentos y `execute`. Puede vivir en **cualquier módulo** y exportarse como provider (p. ej. `SearchKnowledgeTool`, el RAG como herramienta, en `knowledge/tool`). Para algo simple: `defineTool({...})`.
+- **`ToolBox`** (Registry): publica las definiciones (JSON Schema desde Zod) y ejecuta lo que pide el modelo, en paralelo y con timeout. Un error (herramienta que no existe, argumentos inválidos, fallo, timeout) **vuelve al modelo como resultado** para que corrija; no rompe la ejecución.
+- **`SubAgentTool`** (Adapter): un agente como herramienta de otro. El subagente corre en un contexto hijo y al orquestador solo le vuelve su **resultado**, no su conversación.
+- **`AgentRunContext`**: nivel en el árbol, límites, cancelación, **uso total** (el de los subagentes suma en el del orquestador) y **traza** de todos los pasos (`result.trace`).
+- **Respuesta final**: un `ToolCallingAgent` termina llamando la herramienta `final_answer`, cuyos argumentos son su `outputSchema`; si no cumple, se le devuelve el error y corrige. En el último paso solo se le ofrece `final_answer` (entrega con lo que tenga). Funciona con cualquier modelo que soporte herramientas.
+- **Aislamiento**: un subagente que no puede responder (error, límite de pasos o de profundidad) le vuelve al orquestador como resultado de herramienta con el error; el orquestador sigue. Solo la cancelación corta todo. Con herramientas, una respuesta vacía del modelo no es un fallo del proveedor (no se reintenta ni abre el circuito).
+- **Límites** (`.env`): `AI_AGENT_MAX_STEPS` (vueltas), `AI_AGENT_MAX_DEPTH` (niveles de subagentes), `AI_AGENT_TOOL_TIMEOUT_MS`. Modelo por agente: `AI_AGENT_MODELS=sds-quality-review=<modelo>`.
+- **Proveedor**: `LlmRequest.tools` / `LlmResponse.toolCalls`; OpenRouter las manda en formato OpenAI (`require_parameters` solo enruta a modelos que las soportan). Sin herramientas, la petición es la misma de siempre.
+
+Crear uno nuevo (en cualquier módulo): extender la base, definir `name`, `promptVersion`, `outputSchema`, `buildMessages(input)` y, si usa herramientas, `tools(input)` (o `subAgents(input)` en un orquestador); registrarlo como provider del módulo. Las herramientas reciben la entrada de la ejecución, así trabajan sobre los datos de ESA ejecución.
+
+**Dónde se usan subagentes en la FDS (y dónde no):**
+- **Redacción, un agente por especialista** (`agent/specialist`): `SdsSpecialistDraftingAgents` (Factory) crea un `SdsSpecialistDraftingAgent` por perfil (`sds-drafting-classification`, `-emergency`, `-industrial-hygiene`, `-physical-chemistry`, `-toxicology`, `-waste-transport`), con el mismo prompt y reglas del redactor. Cada especialidad se configura y mide por separado (modelo propio: `AI_AGENT_MODELS=sds-drafting-toxicology=<modelo>`; sin él, el del redactor). El ORDEN lo pone el código (`RunSdsGenerationService`: etapas fijas, en paralelo), no un orquestador de IA: los 6 siempre se necesitan, así es más rápido, barato y predecible.
+- **Campos vacíos con búsqueda dirigida** (`AI_SDS_AGENTIC_GAP_FILL`, activa por defecto): en la 2.ª pasada, `SdsGapFillingAgent` (el especialista con las herramientas de `SdsSourceSearchToolkit`) busca el dato puntual de cada campo vacío en las fuentes en vez de releer los mismos fragmentos. Lo que encuentra se registra en las referencias citables del grupo (`CitableRefs`: `S…` conocimiento por CAS, `R…` documentación de referencia, `D…` documentos del producto), así la validación de citas no cambia; lo que no está en las fuentes sigue en null. Si falla, se usa la revisión normal. Queda en el log: "búsqueda dirigida — N búsqueda(s), M fragmento(s) nuevo(s)".
+- **Herramientas de búsqueda** (`tool/SdsSourceSearchToolkit`, armadas por ejecución sobre el producto de esa FDS): `search_sources` (base de conocimiento por CAS), `search_reference_docs` (SGA, GRE, Reglamentación Modelo, procedimientos) y `search_product_documents` (FDS de las materias primas adjuntas; solo si hay). Las usan la búsqueda dirigida y la revisión de calidad.
+- **Sí** en la **revisión de calidad** (`AI_SDS_QUALITY_REVIEW`, activa por defecto): al terminar, `SdsQualityReviewAgent` (líder de calidad) lee la ficha completa y busca contradicciones entre secciones (punto de inflamación ↔ clasificación ↔ transporte, EPP ↔ peligros, toxicidad ↔ frases H…). Cada duda la **delega** en el especialista de esa área (`consult_<especialidad>`, un `SdsSpecialistReviewAgent` con el perfil que redactó esas secciones), que la verifica contra las fuentes (las mismas herramientas de búsqueda). Lo confirmado queda en `conflicts` de la sección (`QualityIssueApplier`), con la sugerencia si la hay; **no cambia la ficha** y, si falla, la FDS sale igual. Queda registrada en `generation.qualityReview` (problemas, versión del prompt y uso).
+- **Al modelo** se le envía el schema de cada herramienta sin restricciones de validación (`toToolParameters`): Gemini rechaza schemas con muchas (`too many states`). Zod valida todo al recibir los argumentos y devuelve el error al modelo si algo no cumple.
+- **Probado con el modelo real** (`gemini-2.5-flash`): la revisión de calidad delegó en el especialista de fisicoquímica, que buscó en el RAG y confirmó un punto de inflamación contradictorio (≈5 s, US$ 0,002); la búsqueda dirigida llenó 2 de 3 campos vacíos con cita y dejó en null el que las fuentes no traían (≈4 s, US$ 0,003).
 
 ### Documentación de referencia y documentos del producto
 
